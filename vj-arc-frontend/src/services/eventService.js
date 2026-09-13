@@ -3,13 +3,13 @@ const API_URL = import.meta.env.VITE_API_URL;
 export const getEvents = async (status = "") => {
   try {
     const url = status
-      ? `${API_URL}/events?status=${status}`
-      : `${API_URL}/events`;
+      ? `${API_URL}/api/events?status=${status}`
+      : `${API_URL}/api/events`;
 
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error("Failed to fetch events");
+      throw new Error(`Failed to fetch events (${response.status})`);
     }
 
     const result = await response.json();
@@ -23,7 +23,7 @@ export const getEvents = async (status = "") => {
 
 export const getEventById = async (id) => {
   try {
-    const response = await fetch(`${API_URL}/events/${id}`);
+    const response = await fetch(`${API_URL}/api/events/${id}`);
 
     if (!response.ok) {
       throw new Error("Event not found");
@@ -37,9 +37,10 @@ export const getEventById = async (id) => {
     throw error;
   }
 };
+
 export const getEventBySlug = async (slug) => {
   try {
-    const response = await fetch(`${API_URL}/events/slug/${slug}`);
+    const response = await fetch(`${API_URL}/api/events/slug/${slug}`);
 
     if (!response.ok) {
       throw new Error("Event not found");
