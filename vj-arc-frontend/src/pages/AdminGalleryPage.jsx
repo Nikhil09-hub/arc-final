@@ -93,7 +93,7 @@ function AdminGalleryPage() {
       // ==========================================
 
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/gallery`,
+        `${import.meta.env.VITE_API_URL}/api/gallery`,
         {
           method: "POST",
 

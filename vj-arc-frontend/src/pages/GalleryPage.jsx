@@ -159,8 +159,8 @@ function GalleryPage() {
 
         const url =
           selectedCategory === "all"
-            ? `${import.meta.env.VITE_API_URL}/gallery`
-            : `${import.meta.env.VITE_API_URL}/gallery?category=${selectedCategory}`
+            ? `${import.meta.env.VITE_API_URL}/api/gallery`
+            : `${import.meta.env.VITE_API_URL}/api/gallery?category=${selectedCategory}`
 
         const response = await fetch(url)
 
