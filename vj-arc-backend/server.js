@@ -8,6 +8,7 @@ require("dotenv").config();
 
 const connectDB = require("./src/config/db");
 const eventRoutes = require("./src/routes/eventRoutes");
+const galleryRoutes = require("./src/routes/galleryRoutes");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/events", eventRoutes);
+app.use("/api/gallery", galleryRoutes);
 
 app.get("/", (req, res) => {
   res.json({
