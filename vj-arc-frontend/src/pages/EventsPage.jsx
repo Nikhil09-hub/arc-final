@@ -1369,7 +1369,7 @@ export default function EventsPage() {
         setError("")
 
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/events`,
+          `${import.meta.env.VITE_API_URL}/api/events`,
           {
             signal: controller.signal,
           }
