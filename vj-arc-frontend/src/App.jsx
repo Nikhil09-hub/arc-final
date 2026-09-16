@@ -17,6 +17,7 @@ import WhatWeDo from "./components/WhatWeDo"
 import EventsPage from "./pages/EventsPage"
 import EventDetails from "./pages/EventDetails"
 import TeamPage from "./pages/TeamPage"
+import AdminLoginPage from "./pages/AdminLoginPage"
 import GalleryPage from "./pages/GalleryPage"
 import AdminGalleryPage from "./pages/AdminGalleryPage"
 import AlumniPage from "./pages/AlumniPage"
@@ -48,6 +49,7 @@ function App() {
             element={<EventDetails />}
           />
           <Route path="/team" element={<TeamPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/alumni" element={<AlumniPage />} />
           <Route
