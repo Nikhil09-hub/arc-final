@@ -1,6 +1,7 @@
 const dns = require("dns");
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
+const authRoutes = require("./src/routes/authRoutes");
 
 const express = require("express");
 const cors = require("cors");
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use("/api/events", eventRoutes);
 app.use("/api/gallery", galleryRoutes);
+app.use("/api/auth", authRoutes);
 
 // Health check
 app.get("/", (req, res) => {
