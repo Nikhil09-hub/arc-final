@@ -5,7 +5,6 @@ import { getEvents } from "../services/eventService"
 import {
   createGalleryImage,
   GALLERY_CATEGORIES,
-  OTHER_GALLERY_EVENT_NAME,
   OTHER_GALLERY_OPTION,
   uploadGalleryImage,
 } from "../services/galleryService"
@@ -34,6 +33,7 @@ function AdminGalleryPage() {
   const [eventLoadError, setEventLoadError] = useState("")
   const [eventsAttempt, setEventsAttempt] = useState(0)
   const [selectedEventId, setSelectedEventId] = useState("")
+  const [generalGalleryTitle, setGeneralGalleryTitle] = useState("")
   const [category, setCategory] = useState("hackathons")
   const [caption, setCaption] = useState("")
   const [uploading, setUploading] = useState(false)
@@ -136,10 +136,12 @@ function AdminGalleryPage() {
 
     const selectedEvent = events.find((event) => event._id === selectedEventId)
     const eventName = selectedEvent?.title || (
-      selectedEventId === OTHER_GALLERY_OPTION ? OTHER_GALLERY_EVENT_NAME : ""
+      selectedEventId === OTHER_GALLERY_OPTION ? generalGalleryTitle.trim() : ""
     )
     if (!eventName) {
-      setError("Select an event or choose Other for photos not tied to an event.")
+      setError(selectedEventId === OTHER_GALLERY_OPTION
+        ? "Enter a title for this gallery section."
+        : "Select an event or choose Other for photos not tied to an event.")
       return
     }
 
@@ -323,6 +325,23 @@ function AdminGalleryPage() {
             <option value={OTHER_GALLERY_OPTION}>Other / not linked to an event</option>
           </select>
           {eventLoadError && <div role="alert" className="mt-2 flex justify-between gap-2 text-xs text-red-300"><span>Unable to load events. {eventLoadError}</span><button type="button" onClick={() => setEventsAttempt((value) => value + 1)} className="shrink-0 underline">Retry</button></div>}
+
+          {selectedEventId === OTHER_GALLERY_OPTION && (
+            <label className="mt-5 block text-sm text-[var(--vj-muted)]">
+              Gallery section title
+              <input
+                type="text"
+                value={generalGalleryTitle}
+                onChange={(event) => setGeneralGalleryTitle(event.target.value)}
+                placeholder="Example: Club Activities"
+                maxLength={100}
+                required
+                disabled={uploading}
+                className="mt-2 w-full rounded-xl border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm text-[var(--vj-white)] outline-none placeholder:text-white/30 focus:border-[var(--vj-blue)]"
+              />
+              <span className="mt-1 block text-xs text-[var(--vj-muted)]">Photos will be grouped under this title in the public gallery.</span>
+            </label>
+          )}
 
 
           {/* ====================================

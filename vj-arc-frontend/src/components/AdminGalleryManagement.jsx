@@ -43,6 +43,7 @@ function AdminGalleryManagement({ events, refreshKey }) {
   const [selectedImage, setSelectedImage] = useState(null)
   const [editing, setEditing] = useState(false)
   const [editEventName, setEditEventName] = useState("")
+  const [editSectionTitle, setEditSectionTitle] = useState("")
   const [editCategory, setEditCategory] = useState(GALLERY_CATEGORIES[0])
   const [editCaption, setEditCaption] = useState("")
   const [savingEdit, setSavingEdit] = useState(false)
@@ -98,9 +99,9 @@ function AdminGalleryManagement({ events, refreshKey }) {
   const openImage = (image) => {
     setSelectedImage(image)
     setEditing(false)
-    setEditEventName(image.eventName === OTHER_GALLERY_EVENT_NAME
-      ? OTHER_GALLERY_OPTION
-      : image.eventName || "")
+    const isKnownEvent = events.some((event) => event.title === image.eventName)
+    setEditEventName(isKnownEvent ? image.eventName : OTHER_GALLERY_OPTION)
+    setEditSectionTitle(isKnownEvent ? "" : image.eventName || "")
     setEditCategory(image.category || GALLERY_CATEGORIES[0])
     setEditCaption(image.caption || "")
     setActionError("")
@@ -122,14 +123,18 @@ function AdminGalleryManagement({ events, refreshKey }) {
 
   const saveImage = async (event) => {
     event.preventDefault()
-    if (!selectedImage || !editEventName) return
+    const eventName = editEventName === OTHER_GALLERY_OPTION
+      ? editSectionTitle.trim()
+      : editEventName
+    if (!selectedImage || !eventName) {
+      setActionError("Enter a title for this gallery section.")
+      return
+    }
     setSavingEdit(true)
     setActionError("")
     try {
       const result = await updateGalleryImage(selectedImage._id, {
-        eventName: editEventName === OTHER_GALLERY_OPTION
-          ? OTHER_GALLERY_EVENT_NAME
-          : editEventName,
+        eventName,
         category: editCategory,
         caption: editCaption.trim(),
       })
@@ -274,9 +279,14 @@ function AdminGalleryManagement({ events, refreshKey }) {
                   <label className="block text-xs text-[var(--vj-muted)]">Event
                     <select value={editEventName} onChange={(event) => setEditEventName(event.target.value)} required className={`${fieldClass} mt-2`}>
                       <option value={OTHER_GALLERY_OPTION}>Other / not linked to an event</option>
-                      {[...new Set([editEventName === OTHER_GALLERY_OPTION ? "" : editEventName, ...events.map((event) => event.title)].filter(Boolean))].map((name) => <option key={name} value={name}>{name}</option>)}
+                      {events.map((event) => <option key={event._id} value={event.title}>{event.title}</option>)}
                     </select>
                   </label>
+                  {editEventName === OTHER_GALLERY_OPTION && (
+                    <label className="block text-xs text-[var(--vj-muted)]">Gallery section title
+                      <input value={editSectionTitle} onChange={(event) => setEditSectionTitle(event.target.value)} maxLength={100} required placeholder="Example: Club Activities" className={`${fieldClass} mt-2`} />
+                    </label>
+                  )}
                   <label className="block text-xs text-[var(--vj-muted)]">Category
                     <select value={editCategory} onChange={(event) => setEditCategory(event.target.value)} required className={`${fieldClass} mt-2`}>
                       {GALLERY_CATEGORIES.map((category) => <option key={category} value={category}>{formatCategory(category)}</option>)}
