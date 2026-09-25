@@ -42,6 +42,34 @@ const createGalleryImage = async (req, res) => {
   }
 };
 
+const updateGalleryImage = async (req, res) => {
+  try {
+    const { eventName, category, caption } = req.body;
+    const image = await Gallery.findByIdAndUpdate(
+      req.params.id,
+      { eventName, category, caption },
+      { new: true, runValidators: true }
+    );
+
+    if (!image) {
+      return res.status(404).json({
+        success: false,
+        message: "Image not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: image,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 const deleteGalleryImage = async (req, res) => {
   try {
     const image = await Gallery.findByIdAndDelete(req.params.id);
@@ -68,5 +96,6 @@ const deleteGalleryImage = async (req, res) => {
 module.exports = {
   getGallery,
   createGalleryImage,
+  updateGalleryImage,
   deleteGalleryImage,
 };

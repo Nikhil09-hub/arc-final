@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { LockKeyhole, Mail, ArrowRight } from "lucide-react"
-
-const API_URL = import.meta.env.VITE_API_URL
+import { loginAdmin, storeAdminToken } from "../services/authService"
 
 function AdminLoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,39 +20,13 @@ function AdminLoginPage() {
     setLoading(true)
     setError("")
 
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.trim(),
-        password,
-      }),
+    const token = await loginAdmin({ email, password })
+    storeAdminToken(token)
+
+    const destination = location.state?.from
+    navigate(destination?.startsWith("/admin/") ? destination : "/admin", {
+      replace: true,
     })
-
-    const text = await response.text()
-
-    console.log("Login status:", response.status)
-    console.log("Login response:", text)
-
-    let result
-
-    try {
-      result = JSON.parse(text)
-    } catch {
-      throw new Error(
-        `Server returned an invalid response (${response.status})`
-      )
-    }
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || "Login failed")
-    }
-
-    localStorage.setItem("vj_arc_admin_token", result.token)
-
-    navigate("/admin/gallery")
   } catch (err) {
     console.error("Login error:", err)
     setError(err.message || "Unable to login")
@@ -74,9 +49,15 @@ function AdminLoginPage() {
           </h1>
 
           <p className="mt-2 text-sm text-[var(--vj-muted)]">
-            Sign in to manage the VJ ARC gallery.
+            Sign in to manage VJ ARC events and gallery.
           </p>
         </div>
+
+        {searchParams.get("expired") === "1" && (
+          <p role="status" className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-200">
+            Your session has expired. Please log in again.
+          </p>
+        )}
 
         {/* Login Card */}
         <div className="rounded-2xl border border-white/10 bg-[var(--vj-dark)] p-6 md:p-8">

@@ -4,6 +4,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  useLocation,
 } from "react-router-dom"
 
 import CustomCursor from "./components/CustomCursor"
@@ -18,9 +19,14 @@ import EventsPage from "./pages/EventsPage"
 import EventDetails from "./pages/EventDetails"
 import TeamPage from "./pages/TeamPage"
 import AdminLoginPage from "./pages/AdminLoginPage"
+import AdminDashboardPage from "./pages/AdminDashboardPage"
+import AdminEventsPage from "./pages/AdminEventsPage"
+import AdminEventFormPage from "./pages/AdminEventFormPage"
 import GalleryPage from "./pages/GalleryPage"
 import AdminGalleryPage from "./pages/AdminGalleryPage"
 import AlumniPage from "./pages/AlumniPage"
+import AdminLayout from "./components/AdminLayout"
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute"
 
 
 function Home() {
@@ -33,14 +39,17 @@ function Home() {
   )
 }
 
-function App() {
+function AppRoutes() {
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith("/admin")
+
   return (
-    <BrowserRouter>
-      <Navbar />
+    <>
+      {!isAdminRoute && <Navbar />}
       <CustomCursor />
       <ClickBurst />
 
-      <div className="pt-[88px]">
+      <div className={isAdminRoute ? "" : "pt-[88px]"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/events" element={<EventsPage />} />
@@ -52,13 +61,27 @@ function App() {
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/alumni" element={<AlumniPage />} />
-          <Route
-            path="/admin/gallery"
-            element={<AdminGalleryPage />}
-          />
+          <Route element={<ProtectedAdminRoute />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardPage />} />
+              <Route path="events" element={<AdminEventsPage />} />
+              <Route path="events/create" element={<AdminEventFormPage />} />
+              <Route path="events/edit/:id" element={<AdminEventFormPage />} />
+              <Route path="gallery" element={<AdminGalleryPage />} />
+            </Route>
+          </Route>
         </Routes>
       </div>
+    </>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   )
 }
+
 export default App

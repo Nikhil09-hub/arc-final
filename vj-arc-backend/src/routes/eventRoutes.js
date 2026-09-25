@@ -1,5 +1,6 @@
 
 const express = require("express");
+const protect = require("../middleware/authMiddleware");
 
 const {
   getEvents,
@@ -18,10 +19,10 @@ router.get("/slug/:slug", getEventBySlug);
 
 router.get("/:id", getEventById);
 
-router.post("/", createEvent);
+router.post("/", protect, createEvent);
 
-router.put("/:id", updateEvent);
+router.put("/:id", protect, updateEvent);
 
-router.delete("/:id", deleteEvent);
+router.delete("/:id", protect, deleteEvent);
 
 module.exports = router;
