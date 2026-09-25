@@ -11,6 +11,8 @@ import {
   deleteGalleryImages,
   GALLERY_CATEGORIES,
   getGalleryPhotos,
+  OTHER_GALLERY_EVENT_NAME,
+  OTHER_GALLERY_OPTION,
   updateGalleryImage,
 } from "../services/galleryService"
 
@@ -75,6 +77,7 @@ function AdminGalleryManagement({ events, refreshKey }) {
   }, [refreshKey, attempt])
 
   const eventOptions = useMemo(() => [...new Set([
+    OTHER_GALLERY_EVENT_NAME,
     ...events.map((event) => event.title),
     ...images.map((image) => image.eventName),
   ].filter(Boolean))].sort((a, b) => a.localeCompare(b)), [events, images])
@@ -95,7 +98,9 @@ function AdminGalleryManagement({ events, refreshKey }) {
   const openImage = (image) => {
     setSelectedImage(image)
     setEditing(false)
-    setEditEventName(image.eventName || "")
+    setEditEventName(image.eventName === OTHER_GALLERY_EVENT_NAME
+      ? OTHER_GALLERY_OPTION
+      : image.eventName || "")
     setEditCategory(image.category || GALLERY_CATEGORIES[0])
     setEditCaption(image.caption || "")
     setActionError("")
@@ -122,7 +127,9 @@ function AdminGalleryManagement({ events, refreshKey }) {
     setActionError("")
     try {
       const result = await updateGalleryImage(selectedImage._id, {
-        eventName: editEventName,
+        eventName: editEventName === OTHER_GALLERY_OPTION
+          ? OTHER_GALLERY_EVENT_NAME
+          : editEventName,
         category: editCategory,
         caption: editCaption.trim(),
       })
@@ -266,7 +273,8 @@ function AdminGalleryManagement({ events, refreshKey }) {
                   <h3 className="text-lg font-semibold">Edit image details</h3>
                   <label className="block text-xs text-[var(--vj-muted)]">Event
                     <select value={editEventName} onChange={(event) => setEditEventName(event.target.value)} required className={`${fieldClass} mt-2`}>
-                      {[...new Set([editEventName, ...events.map((event) => event.title)].filter(Boolean))].map((name) => <option key={name} value={name}>{name}</option>)}
+                      <option value={OTHER_GALLERY_OPTION}>Other / not linked to an event</option>
+                      {[...new Set([editEventName === OTHER_GALLERY_OPTION ? "" : editEventName, ...events.map((event) => event.title)].filter(Boolean))].map((name) => <option key={name} value={name}>{name}</option>)}
                     </select>
                   </label>
                   <label className="block text-xs text-[var(--vj-muted)]">Category

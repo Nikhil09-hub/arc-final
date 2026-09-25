@@ -9,6 +9,9 @@ export const GALLERY_CATEGORIES = [
   "other-activities",
 ]
 
+export const OTHER_GALLERY_OPTION = "__other_gallery__"
+export const OTHER_GALLERY_EVENT_NAME = "Other"
+
 export async function getGalleryPhotos() {
   const response = await fetch(`${API_URL}/gallery`)
   const result = await response.json().catch(() => null)

@@ -5,6 +5,8 @@ import { getEvents } from "../services/eventService"
 import {
   createGalleryImage,
   GALLERY_CATEGORIES,
+  OTHER_GALLERY_EVENT_NAME,
+  OTHER_GALLERY_OPTION,
   uploadGalleryImage,
 } from "../services/galleryService"
 
@@ -133,8 +135,11 @@ function AdminGalleryPage() {
     }
 
     const selectedEvent = events.find((event) => event._id === selectedEventId)
-    if (!selectedEvent) {
-      setError("Select an event before uploading photos.")
+    const eventName = selectedEvent?.title || (
+      selectedEventId === OTHER_GALLERY_OPTION ? OTHER_GALLERY_EVENT_NAME : ""
+    )
+    if (!eventName) {
+      setError("Select an event or choose Other for photos not tied to an event.")
       return
     }
 
@@ -153,7 +158,7 @@ function AdminGalleryPage() {
     try {
       for (const item of pendingFiles) {
         const uploadData = item.uploadData || {
-          eventName: selectedEvent.title,
+          eventName,
           category,
           caption: caption.trim(),
         }
@@ -304,17 +309,18 @@ function AdminGalleryPage() {
           ==================================== */}
 
           <label className="mt-8 block text-sm text-[var(--vj-muted)]">
-            Event
+            Event (optional)
           </label>
 
           <select
             value={selectedEventId}
             onChange={(event) => setSelectedEventId(event.target.value)}
-            disabled={eventsLoading || uploading || Boolean(eventLoadError)}
+            disabled={eventsLoading || uploading}
             className="mt-2 w-full rounded-xl border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm text-[var(--vj-white)] outline-none placeholder:text-white/30 focus:border-[var(--vj-blue)]"
           >
-            <option value="">{eventsLoading ? "Loading events..." : "Select an event"}</option>
+            <option value="">{eventsLoading ? "Loading events..." : "Select an event or choose Other"}</option>
             {events.map((event) => <option key={event._id} value={event._id}>{event.title}</option>)}
+            <option value={OTHER_GALLERY_OPTION}>Other / not linked to an event</option>
           </select>
           {eventLoadError && <div role="alert" className="mt-2 flex justify-between gap-2 text-xs text-red-300"><span>Unable to load events. {eventLoadError}</span><button type="button" onClick={() => setEventsAttempt((value) => value + 1)} className="shrink-0 underline">Retry</button></div>}
 
@@ -367,7 +373,7 @@ function AdminGalleryPage() {
           <button
             type="button"
             onClick={handleUpload}
-            disabled={uploading || eventsLoading || !events.length}
+            disabled={uploading || eventsLoading}
             className="mt-8 w-full rounded-xl bg-[var(--vj-blue)] px-6 py-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {uploading ? "Uploading photos..." : `Upload ${selectedFiles.length || "Photos"}`}
@@ -396,7 +402,7 @@ function AdminGalleryPage() {
           </p>
 
           <p className="mt-4 text-sm leading-relaxed text-[var(--vj-muted)]">
-            Select an event once, then upload one or more photos to group them in the public gallery.
+            Select an event to group its photos, or choose Other for general gallery photos.
           </p>
 
         </div>
