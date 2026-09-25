@@ -1,8 +1,11 @@
 import Network from "./Network"
 import { motion } from "motion/react"
 import { ArrowUpRight } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 function Hero() {
+  const navigate = useNavigate()
+
   const scrollTo = (id) => {
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth",
@@ -19,7 +22,6 @@ function Hero() {
 
       {/* Content */}
       <div className="section-container flex min-h-[calc(100vh-89px)] items-center">
-
         <motion.div
           className="max-w-3xl"
           initial={{ opacity: 0, y: 40 }}
@@ -37,16 +39,16 @@ function Hero() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false }}
             transition={{ duration: 0.7 }}
-            className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-blue-400"
+            className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[var(--vj-blue)]"
           >
             Technology • Innovation • Community
           </motion.p>
 
           {/* Heading */}
-            <h1
-              className="text-6xl font-bold leading-[0.92] tracking-[-0.035em] md:text-8xl"
-              style={{ fontFamily: "var(--font-hero)" }}
-            >
+          <h1
+            className="text-6xl font-bold leading-[0.92] tracking-[-0.035em] md:text-8xl"
+            style={{ fontFamily: "var(--font-hero)" }}
+          >
             <motion.span
               className="block"
               initial={{ opacity: 0, y: 30 }}
@@ -58,7 +60,7 @@ function Hero() {
             </motion.span>
 
             <motion.span
-              className="block text-blue-500"
+              className="block text-[var(--vj-blue)]"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false }}
@@ -76,7 +78,6 @@ function Hero() {
             >
               CONNECT.
             </motion.span>
-
           </h1>
 
           {/* Description */}
@@ -85,7 +86,7 @@ function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false }}
             transition={{ duration: 0.7, delay: 0.25 }}
-            className="mt-8 max-w-xl text-lg leading-relaxed text-gray-400"
+            className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--vj-muted)]"
           >
             VJ ARC is a student-driven technical community focused on
             technology, innovation, collaboration and learning.
@@ -100,19 +101,19 @@ function Hero() {
             className="mt-10 flex gap-4"
           >
 
-            {/* Explore Programs */}
+            {/* Explore Events */}
             <motion.button
-              onClick={() => scrollTo("programs")}
+              onClick={() => navigate("/events")}
               whileHover={{
                 scale: 1.04,
-                boxShadow: "0 0 30px rgba(37,99,235,0.35)",
+                boxShadow: "0 0 30px rgba(37,99,255,0.35)",
               }}
               whileTap={{
                 scale: 0.94,
               }}
-              className="group flex items-center gap-2 rounded-full bg-blue-600 px-7 py-3 font-medium"
+              className="group flex items-center gap-2 rounded-full bg-[var(--vj-blue)] px-7 py-3 font-medium"
             >
-              Explore Programs
+              Explore Events
 
               <motion.span
                 initial={{ x: 0, y: 0 }}
@@ -147,13 +148,11 @@ function Hero() {
             </motion.button>
 
           </motion.div>
-
         </motion.div>
-
       </div>
 
       {/* Small technical label */}
-      <div className="absolute bottom-8 right-10 hidden font-mono text-[10px] uppercase tracking-[0.25em] text-gray-600 lg:block">
+      <div className="absolute bottom-8 right-10 hidden font-mono text-[10px] uppercase tracking-[0.25em] text-[var(--vj-muted)] lg:block">
         VJ ARC / AI RESEARCH & CODING
       </div>
 

@@ -17,24 +17,24 @@ function formatCategory(category) {
 }
 
 function AdminGalleryPage() {
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [preview, setPreview] = useState("")
+  const [selectedFiles, setSelectedFiles] = useState([])
 
   const [eventName, setEventName] = useState("")
   const [category, setCategory] = useState("hackathons")
   const [caption, setCaption] = useState("")
 
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState("")
   const [message, setMessage] = useState("")
   const [error, setError] = useState("")
 
   const handleFileChange = (event) => {
-    const file = event.target.files?.[0]
+    const files = Array.from(event.target.files || [])
 
-    if (!file) return
+    if (!files.length) return
 
-    setSelectedFile(file)
-    setPreview(URL.createObjectURL(file))
+    setSelectedFiles(files)
+    event.target.value = ""
 
     setMessage("")
     setError("")
@@ -42,8 +42,8 @@ function AdminGalleryPage() {
 
   const handleUpload = async () => {
     // Validation
-    if (!selectedFile) {
-      setError("Please select an image.")
+    if (!selectedFiles.length) {
+      setError("Please select at least one image.")
       return
     }
 
@@ -57,76 +57,77 @@ function AdminGalleryPage() {
       setError("")
       setMessage("")
 
-      // ==========================================
-      // 1. Upload image to Cloudinary
-      // ==========================================
-
-      const formData = new FormData()
-
-      formData.append("file", selectedFile)
-
-      formData.append(
-        "upload_preset",
-        import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
-      )
-
       const cloudName =
         import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 
-      const cloudinaryResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      )
+      const failedFiles = []
+      let uploadedCount = 0
 
-      if (!cloudinaryResponse.ok) {
-        throw new Error("Cloudinary upload failed")
+      for (const [index, file] of selectedFiles.entries()) {
+        setUploadProgress(`Uploading photo ${index + 1} of ${selectedFiles.length}...`)
+
+        try {
+          const formData = new FormData()
+          formData.append("file", file)
+          formData.append(
+            "upload_preset",
+            import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+          )
+
+          const cloudinaryResponse = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          )
+
+          if (!cloudinaryResponse.ok) {
+            throw new Error("Cloudinary upload failed")
+          }
+
+          const cloudinaryData = await cloudinaryResponse.json()
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL}/gallery`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                eventName: eventName.trim(),
+                imageUrl: cloudinaryData.secure_url,
+                category,
+                caption: caption.trim(),
+              }),
+            }
+          )
+
+          const result = await response.json()
+
+          if (!response.ok || !result.success) {
+            throw new Error("Failed to save gallery image")
+          }
+
+          uploadedCount += 1
+        } catch (uploadError) {
+          console.error(`Failed to upload ${file.name}:`, uploadError)
+          failedFiles.push(file)
+        }
       }
 
-      const cloudinaryData =
-        await cloudinaryResponse.json()
+      setSelectedFiles(failedFiles)
 
-      // ==========================================
-      // 2. Save image information in MongoDB
-      // ==========================================
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/gallery`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type": "application/json",
-          },
-
-          body: JSON.stringify({
-            eventName: eventName.trim(),
-            imageUrl: cloudinaryData.secure_url,
-            category,
-            caption: caption.trim(),
-          }),
-        }
-      )
-
-      const result = await response.json()
-
-      if (!response.ok || !result.success) {
-        throw new Error("Failed to save gallery image")
+      if (uploadedCount > 0) {
+        setMessage(`${uploadedCount} photo${uploadedCount === 1 ? "" : "s"} uploaded successfully.`)
       }
 
-      // ==========================================
-      // 3. Success
-      // ==========================================
-
-      setMessage("Image uploaded successfully!")
-
-      // Clear form
-      setSelectedFile(null)
-      setPreview("")
-      setEventName("")
-      setCaption("")
+      if (failedFiles.length > 0) {
+        setError(`${failedFiles.length} photo${failedFiles.length === 1 ? "" : "s"} failed. Retry the remaining selection.`)
+      } else {
+        setEventName("")
+        setCaption("")
+      }
 
     } catch (error) {
       console.error("Gallery upload error:", error)
@@ -136,6 +137,7 @@ function AdminGalleryPage() {
       )
     } finally {
       setUploading(false)
+      setUploadProgress("")
     }
   }
 
@@ -177,21 +179,28 @@ function AdminGalleryPage() {
 
           <label className="flex min-h-[300px] cursor-pointer items-center justify-center overflow-hidden rounded-2xl border border-dashed border-white/20 bg-[var(--vj-black)] p-6 transition hover:border-[var(--vj-blue)]">
 
-            {preview ? (
-              <img
-                src={preview}
-                alt="Selected preview"
-                className="max-h-[350px] w-full rounded-xl object-contain"
-              />
+            {selectedFiles.length ? (
+              <div className="w-full text-center">
+                <p className="text-lg font-medium">
+                  {selectedFiles.length} photo{selectedFiles.length === 1 ? "" : "s"} selected
+                </p>
+                <ul className="mt-4 max-h-40 space-y-2 overflow-y-auto text-sm text-[var(--vj-muted)]">
+                  {selectedFiles.map((file, index) => (
+                    <li key={`${file.name}-${file.lastModified}-${index}`} className="truncate">
+                      {file.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : (
               <div className="text-center">
 
                 <p className="text-lg font-medium">
-                  Choose an image
+                  Choose photos
                 </p>
 
                 <p className="mt-2 text-sm text-[var(--vj-muted)]">
-                  JPG, PNG or WEBP
+                  Select one or more JPG, PNG or WEBP images
                 </p>
 
               </div>
@@ -200,6 +209,7 @@ function AdminGalleryPage() {
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
+              multiple
               onChange={handleFileChange}
               className="hidden"
             />
@@ -275,8 +285,8 @@ function AdminGalleryPage() {
             className="mt-8 w-full rounded-xl bg-[var(--vj-blue)] px-6 py-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {uploading
-              ? "Uploading..."
-              : "Upload Image"}
+              ? uploadProgress || "Uploading..."
+              : `Upload ${selectedFiles.length || "Photos"}`}
           </button>
 
 
