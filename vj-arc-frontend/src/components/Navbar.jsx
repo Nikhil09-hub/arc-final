@@ -21,7 +21,7 @@ const navItems = [
 const socialLinks = [
   {
     name: "Instagram",
-    href: "https://www.instagram.com/vj_arc?stkn=MTVpa3NlNzF2MThieg%3D%3D",
+    href: "https://www.instagram.com/vj_arc/",
     Icon: FaInstagram,
     className: "border-[#E4405F]/25 bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20 hover:shadow-[0_0_22px_rgba(228,64,95,0.2)]",
   },
