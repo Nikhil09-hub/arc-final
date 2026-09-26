@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
-import { LockKeyhole, Mail, ArrowRight } from "lucide-react"
+import { LockKeyhole, Mail, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { loginAdmin, storeAdminToken } from "../services/authService"
 
 function AdminLoginPage() {
@@ -10,6 +10,7 @@ function AdminLoginPage() {
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -100,13 +101,23 @@ function AdminLoginPage() {
                 />
 
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Password"
                   required
-                  className="w-full rounded-xl border border-white/10 bg-[var(--vj-black)] py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[var(--vj-blue)]"
+                  className="w-full rounded-xl border border-white/10 bg-[var(--vj-black)] py-3.5 pl-11 pr-12 text-sm outline-none transition focus:border-[var(--vj-blue)]"
                 />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-lg text-[var(--vj-muted)] transition hover:text-[var(--vj-white)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--vj-blue)]"
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
               </div>
             </div>
 
