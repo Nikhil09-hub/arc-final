@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { ArrowUpRight, Menu, X } from "lucide-react"
+import { FaInstagram, FaLinkedinIn } from "react-icons/fa"
 import {
   Link,
   useLocation,
@@ -15,6 +16,21 @@ const navItems = [
   { name: "Gallery", route: "/gallery" },
   { name: "Team", route: "/team" },
   { name: "Alumni", route: "/alumni" },
+]
+
+const socialLinks = [
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/vj_arc?stkn=MTVpa3NlNzF2MThieg%3D%3D",
+    Icon: FaInstagram,
+    className: "border-[#E4405F]/25 bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20 hover:shadow-[0_0_22px_rgba(228,64,95,0.2)]",
+  },
+  {
+    name: "LinkedIn",
+    href: "https://www.linkedin.com/company/vnr-vj-arc/",
+    Icon: FaLinkedinIn,
+    className: "border-[#0A66C2]/25 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 hover:shadow-[0_0_22px_rgba(10,102,194,0.2)]",
+  },
 ]
 
 
@@ -448,39 +464,44 @@ function Navbar() {
           </nav>
 
 
-          {/* ================================
-              LINKEDIN
-          ================================= */}
-
-          <motion.a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{
-              scale: 1.04,
-              boxShadow:
-                "0 0 30px rgba(37,99,255,0.22)",
-            }}
-            whileTap={{
-              scale: 0.95,
-            }}
-            className="ml-auto hidden items-center gap-2 rounded-full border border-[var(--vj-blue)]/30 bg-[var(--vj-blue)]/10 px-4 py-2.5 text-xs font-medium text-[var(--vj-blue)] transition-colors hover:bg-[var(--vj-blue)]/20 md:flex"
-          >
-            LinkedIn
-
-            <motion.span
-              whileHover={{
-                rotate: 45,
-              }}
-            >
-              <ArrowUpRight size={14} />
-            </motion.span>
-          </motion.a>
+          <div className="ml-auto hidden items-center gap-2 md:flex">
+            {socialLinks.map(({ name, href, Icon, className }) => (
+              <motion.a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={name}
+                title={name}
+                whileHover={{ y: -2, scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                className={`grid size-10 place-items-center rounded-full border backdrop-blur-sm transition ${className}`}
+              >
+                <Icon size={18} strokeWidth={2.2} />
+              </motion.a>
+            ))}
+          </div>
 
 
           {/* ================================
               MOBILE MENU BUTTON
           ================================= */}
+
+          <div className="ml-auto flex items-center gap-2 md:hidden">
+            {socialLinks.map(({ name, href, Icon, className }) => (
+              <a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={name}
+                title={name}
+                className={`grid size-9 place-items-center rounded-full border transition ${className}`}
+              >
+                <Icon size={17} strokeWidth={2.2} />
+              </a>
+            ))}
+          </div>
 
           <motion.button
             type="button"
@@ -488,7 +509,7 @@ function Navbar() {
               setMobileOpen(!mobileOpen)
             }
             whileTap={{ scale: 0.9 }}
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 md:hidden"
+            className="ml-2 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 md:hidden"
             aria-label="Toggle navigation"
             aria-expanded={mobileOpen}
           >
@@ -627,20 +648,6 @@ function Navbar() {
                 )
               })}
 
-
-              {/* LinkedIn */}
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex items-center justify-between rounded-2xl bg-[var(--vj-blue)] px-5 py-4 text-sm font-medium text-white"
-              >
-                <span>
-                  Connect on LinkedIn
-                </span>
-
-                <ArrowUpRight size={16} />
-              </a>
 
             </div>
           </motion.div>
