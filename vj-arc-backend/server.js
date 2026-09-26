@@ -10,6 +10,7 @@ require("dotenv").config();
 const connectDB = require("./src/config/db");
 const eventRoutes = require("./src/routes/eventRoutes");
 const galleryRoutes = require("./src/routes/galleryRoutes");
+const eventDocumentRoutes = require("./src/routes/eventDocumentRoutes");
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use("/api/events", eventRoutes);
 app.use("/api/gallery", galleryRoutes);
+app.use("/api/event-documents", eventDocumentRoutes);
 app.use("/api/auth", authRoutes);
 
 // Health check

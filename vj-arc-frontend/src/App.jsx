@@ -24,6 +24,7 @@ import AdminEventsPage from "./pages/AdminEventsPage"
 import AdminEventFormPage from "./pages/AdminEventFormPage"
 import GalleryPage from "./pages/GalleryPage"
 import AdminGalleryPage from "./pages/AdminGalleryPage"
+import AdminEventDocumentsPage, { AdminEventDocumentsDetailPage } from "./pages/AdminEventDocumentsPage"
 import AlumniPage from "./pages/AlumniPage"
 import AdminLayout from "./components/AdminLayout"
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute"
@@ -68,6 +69,8 @@ function AppRoutes() {
               <Route path="events/create" element={<AdminEventFormPage />} />
               <Route path="events/edit/:id" element={<AdminEventFormPage />} />
               <Route path="gallery" element={<AdminGalleryPage />} />
+              <Route path="event-documents" element={<AdminEventDocumentsPage />} />
+              <Route path="event-documents/:eventId" element={<AdminEventDocumentsDetailPage />} />
             </Route>
           </Route>
         </Routes>

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import {
   CalendarDays,
+  ClipboardList,
   Images,
   LayoutDashboard,
   LogOut,
@@ -14,6 +15,7 @@ const navigation = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true },
   { label: "Events", to: "/admin/events", icon: CalendarDays },
   { label: "Gallery", to: "/admin/gallery", icon: Images },
+  { label: "Event Documents", to: "/admin/event-documents", icon: ClipboardList },
 ]
 
 export default function AdminLayout() {
