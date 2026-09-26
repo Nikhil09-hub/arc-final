@@ -176,6 +176,56 @@ function TeamPage() {
         </div>
 
       </section>
+
+      <section className="mx-auto mt-14 max-w-7xl border-t border-white/[0.08] pt-10">
+        <div className="mb-6">
+          <div className="mb-2 flex items-center gap-3">
+            <span className="h-px w-8 bg-[var(--vj-blue)]" />
+            <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-[var(--vj-blue)]">
+              VJ ARC / FACULTY
+            </p>
+          </div>
+          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+            Faculty Coordinators
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[
+            { name: "E. Lalitha", image: "/team/lalitha.jpeg" },
+            { name: "Mammath Nath Das", image: "/team/manmath.jpeg" },
+          ].map((coordinator, index) => (
+            <article
+              key={coordinator.name}
+              className="group relative overflow-hidden rounded-xl border border-white/[0.08] bg-[var(--vj-dark)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--vj-blue)]/50"
+            >
+              <div className="relative aspect-[4/5] overflow-hidden bg-white/[0.03]">
+                <img
+                  src={coordinator.image}
+                  alt={coordinator.name}
+                  className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/50 to-transparent" />
+                <span className="absolute left-3 top-3 font-mono text-[10px] tracking-widest text-white/70">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[var(--vj-blue)]" />
+              </div>
+
+              <div className="px-4 py-3">
+                <h3 className="text-base font-semibold tracking-tight transition-colors duration-300 group-hover:text-[var(--vj-blue)]">
+                  {coordinator.name}
+                </h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-[var(--vj-muted)]">
+                  Asst. Professor
+                </p>
+              </div>
+
+              <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[var(--vj-blue)] transition-all duration-500 group-hover:w-full" />
+            </article>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }
