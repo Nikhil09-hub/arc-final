@@ -44,7 +44,7 @@ function AnimatedStat({ value, suffix = "", label, icon: Icon, delay = 0 }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.5 }}
       transition={{ duration: 0.7, delay }}
-      className="group relative flex flex-col items-center gap-3 rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-white)]/[0.02] px-6 py-7 text-center backdrop-blur-sm transition-all duration-300 hover:border-[var(--vj-blue)]/30 hover:bg-[var(--vj-white)]/[0.04]"
+      className="group relative flex flex-col items-center gap-2 rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-white)]/[0.02] px-4 py-5 text-center backdrop-blur-sm transition-all duration-300 hover:border-[var(--vj-blue)]/30 hover:bg-[var(--vj-white)]/[0.04]"
     >
       {/* hover glow */}
       <div
@@ -55,16 +55,16 @@ function AnimatedStat({ value, suffix = "", label, icon: Icon, delay = 0 }) {
         }}
       />
 
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)]">
-        <Icon size={20} />
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)]">
+        <Icon size={18} />
       </div>
 
-      <p className="font-mono font-bold text-3xl md:text-4xl text-[var(--vj-white)] tracking-tight">
+      <p className="font-mono font-bold text-2xl md:text-3xl text-[var(--vj-white)] tracking-tight">
         {display}
         {suffix}
       </p>
 
-      <p className="font-mono text-xs uppercase tracking-wider text-[var(--vj-muted)] font-medium">
+      <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--vj-muted)] font-medium">
         {label}
       </p>
     </motion.div>
@@ -85,14 +85,14 @@ function FocusCard({ icon: Icon, title, description, index }) {
         delay: index * 0.08,
         ease: [0.16, 1, 0.3, 1],
       }}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-white)]/[0.02] p-6 backdrop-blur-sm transition-all duration-500 hover:border-[var(--vj-blue)]/30 hover:bg-[var(--vj-white)]/[0.04]"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-white)]/[0.02] p-5 backdrop-blur-sm transition-all duration-500 hover:border-[var(--vj-blue)]/30 hover:bg-[var(--vj-white)]/[0.04]"
     >
       {/* subtle corner glow */}
       <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[var(--vj-blue)]/[0.05] blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
       <div>
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)] transition-colors duration-300 group-hover:bg-[var(--vj-blue)]/20 group-hover:text-[var(--vj-blue)]">
-          <Icon size={22} />
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)] transition-colors duration-300 group-hover:bg-[var(--vj-blue)]/20 group-hover:text-[var(--vj-blue)]">
+          <Icon size={20} />
         </div>
 
         <h4 className="font-mono font-bold text-lg text-[var(--vj-white)] group-hover:text-[var(--vj-blue)] transition-colors duration-300 mb-2">
@@ -228,7 +228,7 @@ function About() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden border-t border-[var(--vj-white)]/[0.06] pt-8 pb-20 md:pt-12 md:pb-28"
+      className="relative overflow-hidden border-t border-[var(--vj-white)]/[0.06] pt-6 pb-14 md:pt-8 md:pb-20"
     >
       <DotGrid />
 
@@ -237,13 +237,13 @@ function About() {
 
       <div className="pointer-events-none absolute -right-40 top-1/2 h-[450px] w-[450px] rounded-full bg-[var(--vj-blue)]/[0.03] blur-[120px]" />
 
-      <div className="section-container relative space-y-24 md:space-y-32">
+      <div className="section-container relative space-y-16 md:space-y-20">
 
         {/* =======================================================
             1. SECTION HEADER & GENESIS
            ======================================================= */}
         <div>
-          <div className="mb-14 max-w-4xl">
+          <div className="mb-10 max-w-4xl">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -260,7 +260,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.08 }}
-              className="font-mono font-bold text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-[var(--vj-white)] tracking-tight whitespace-nowrap"
+              className="font-mono font-bold text-xl sm:text-3xl md:text-4xl lg:text-5xl text-[var(--vj-white)] tracking-tight"
             >
               The Story Behind <span className="text-[var(--vj-blue)]">VJ ARC</span>
             </motion.h2>
@@ -270,7 +270,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.16 }}
-              className="mt-6 font-sans text-[var(--vj-muted)] text-base sm:text-lg leading-relaxed max-w-2xl"
+              className="mt-4 font-sans text-[var(--vj-muted)] text-sm sm:text-base leading-relaxed max-w-2xl"
             >
               A united platform combining the best of software development,
               algorithmic excellence, and artificial intelligence research to build
@@ -279,7 +279,7 @@ function About() {
           </div>
 
           {/* ── The Genesis & Philosophy Cards ── */}
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
 
             {/* Card 1: The Fusion */}
             <motion.div
@@ -287,7 +287,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="group relative flex flex-col justify-between rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-8 backdrop-blur-md transition-all duration-300 hover:border-[var(--vj-blue)]/30"
+              className="group relative flex flex-col justify-between rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-6 backdrop-blur-md transition-all duration-300 hover:border-[var(--vj-blue)]/30"
             >
               <div>
                 <div className="mb-4 inline-block rounded-full bg-[var(--vj-blue)]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider font-medium text-[var(--vj-blue)]">
@@ -313,7 +313,7 @@ function About() {
               </div>
 
               {/* Merger Flow Pill Diagram */}
-              <div className="mt-8 flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-black)]/40 p-3.5">
+              <div className="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--vj-white)]/[0.06] bg-[var(--vj-black)]/40 p-3">
                 <span className="rounded-xl border border-[var(--vj-white)]/10 bg-[var(--vj-white)]/5 px-3 py-2 font-mono text-xs uppercase tracking-wider font-medium text-[var(--vj-muted)]">
                   VJ Hackslash
                 </span>
@@ -342,7 +342,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="group relative flex flex-col justify-between rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-8 backdrop-blur-md transition-all duration-300 hover:border-[var(--vj-blue)]/30"
+              className="group relative flex flex-col justify-between rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-6 backdrop-blur-md transition-all duration-300 hover:border-[var(--vj-blue)]/30"
             >
               <div>
                 <div className="mb-4 inline-block rounded-full bg-[var(--vj-blue)]/10 px-3 py-1 font-mono text-xs uppercase tracking-wider font-medium text-[var(--vj-blue)]">
@@ -362,7 +362,7 @@ function About() {
               </div>
 
               {/* Motto Quote Box */}
-              <div className="mt-8 rounded-2xl border-l-2 border-[var(--vj-blue)] bg-[var(--vj-blue)]/[0.04] p-4 font-sans text-[var(--vj-muted)] text-sm md:text-base italic leading-relaxed">
+              <div className="mt-6 rounded-2xl border-l-2 border-[var(--vj-blue)] bg-[var(--vj-blue)]/[0.04] p-4 font-sans text-[var(--vj-muted)] text-sm italic leading-relaxed">
                 “Unifying Creativity and Technology to build solutions that matter.”
               </div>
             </motion.div>
@@ -372,7 +372,7 @@ function About() {
         {/* =======================================================
             2. LIVE METRICS & STATS
            ======================================================= */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {STATS.map((stat, i) => (
             <AnimatedStat key={stat.label} {...stat} delay={i * 0.08} />
           ))}
@@ -382,7 +382,7 @@ function About() {
             3. VISION & MISSION SPLIT
            ======================================================= */}
         <div>
-          <div className="mb-10 text-center md:text-left">
+          <div className="mb-8 text-center md:text-left">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -404,7 +404,7 @@ function About() {
             </motion.h3>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
 
             {/* Vision Card */}
             <motion.div
@@ -412,7 +412,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
-              className="rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-8 backdrop-blur-md hover:border-[var(--vj-blue)]/30 transition-all duration-300"
+              className="rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-6 backdrop-blur-md hover:border-[var(--vj-blue)]/30 transition-all duration-300"
             >
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)]">
@@ -443,7 +443,7 @@ function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, delay: 0.1 }}
-              className="rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-8 backdrop-blur-md hover:border-[var(--vj-blue)]/30 transition-all duration-300"
+              className="rounded-3xl border border-[var(--vj-white)]/[0.08] bg-[var(--vj-white)]/[0.02] p-6 backdrop-blur-md hover:border-[var(--vj-blue)]/30 transition-all duration-300"
             >
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--vj-blue)]/10 text-[var(--vj-blue)]">
@@ -474,7 +474,7 @@ function About() {
             4. 8 PILLARS OF EXCELLENCE / CORE AREAS OF FOCUS
            ======================================================= */}
         <div>
-          <div className="mb-12">
+          <div className="mb-8">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}

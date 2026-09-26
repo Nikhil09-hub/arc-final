@@ -1,4 +1,5 @@
 import "./App.css"
+import { useEffect } from "react"
 
 import {
   BrowserRouter,
@@ -43,6 +44,44 @@ function Home() {
 function AppRoutes() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith("/admin")
+
+  useEffect(() => {
+    const path = location.pathname
+    let title = "VJ ARC | AI Research & Coding"
+
+    if (path === "/" && location.hash === "#about") {
+      title = "About | VJ ARC"
+    } else if (path === "/" && location.hash === "#what-we-do") {
+      title = "What We Do | VJ ARC"
+    } else if (path === "/events") {
+      title = "Events | VJ ARC"
+    } else if (path.match(/^\/events\/[^/]+\/?$/)) {
+      const slug = path.split("/").filter(Boolean).at(-1)
+      title = `${decodeURIComponent(slug).replaceAll("-", " ")} | VJ ARC`
+    } else if (path === "/team") {
+      title = "Team | VJ ARC"
+    } else if (path === "/gallery") {
+      title = "Gallery | VJ ARC"
+    } else if (path === "/alumni") {
+      title = "Alumni | VJ ARC"
+    } else if (path === "/admin/login") {
+      title = "Admin Login | VJ ARC"
+    } else if (path === "/admin") {
+      title = "Admin Dashboard | VJ ARC"
+    } else if (path === "/admin/events/create") {
+      title = "Create Event | VJ ARC"
+    } else if (path.startsWith("/admin/events/edit/")) {
+      title = "Edit Event | VJ ARC"
+    } else if (path.startsWith("/admin/events")) {
+      title = "Manage Events | VJ ARC"
+    } else if (path.startsWith("/admin/gallery")) {
+      title = "Manage Gallery | VJ ARC"
+    } else if (path.startsWith("/admin/event-documents")) {
+      title = "Event Documents | VJ ARC"
+    }
+
+    document.title = title
+  }, [location.pathname, location.hash])
 
   return (
     <>

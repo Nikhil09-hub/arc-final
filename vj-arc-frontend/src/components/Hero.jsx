@@ -39,14 +39,14 @@ function Hero() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false }}
             transition={{ duration: 0.7 }}
-            className="mb-6 text-sm font-medium uppercase tracking-[0.3em] text-[var(--vj-blue)]"
+            className="mb-4 text-xs font-medium uppercase tracking-[0.25em] text-[var(--vj-blue)] sm:text-sm"
           >
             Technology • Innovation • Community
           </motion.p>
 
           {/* Heading */}
           <h1
-            className="text-6xl font-bold leading-[0.92] tracking-[-0.035em] md:text-8xl"
+            className="text-5xl font-bold leading-[0.92] tracking-[-0.035em] md:text-7xl"
             style={{ fontFamily: "var(--font-hero)" }}
           >
             <motion.span
@@ -86,7 +86,7 @@ function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false }}
             transition={{ duration: 0.7, delay: 0.25 }}
-            className="mt-8 max-w-xl text-lg leading-relaxed text-[var(--vj-muted)]"
+            className="mt-6 max-w-xl text-base leading-relaxed text-[var(--vj-muted)]"
           >
             VJ ARC is a student-driven technical community focused on
             technology, innovation, collaboration and learning.
@@ -98,7 +98,7 @@ function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: false }}
             transition={{ duration: 0.7, delay: 0.35 }}
-            className="mt-10 flex gap-4"
+            className="mt-8 flex gap-3"
           >
 
             {/* Explore Events */}
@@ -111,7 +111,7 @@ function Hero() {
               whileTap={{
                 scale: 0.94,
               }}
-              className="group flex items-center gap-2 rounded-full bg-[var(--vj-blue)] px-7 py-3 font-medium"
+              className="group flex items-center gap-2 rounded-full bg-[var(--vj-blue)] px-6 py-2.5 text-sm font-medium"
             >
               Explore Events
 
@@ -135,7 +135,7 @@ function Hero() {
               whileTap={{
                 scale: 0.94,
               }}
-              className="group flex items-center gap-2 rounded-full border border-white/20 px-7 py-3 font-medium transition"
+              className="group flex items-center gap-2 rounded-full border border-white/20 px-6 py-2.5 text-sm font-medium transition"
             >
               Discover VJ ARC
 
