@@ -209,7 +209,11 @@ function GalleryPage() {
     return groups
   }, {})
 
-  const eventGroups = Object.entries(groupedImages)
+  const eventGroups = Object.entries(groupedImages).sort(([, imagesA], [, imagesB]) => {
+    const orderA = imagesA[0]?.sectionOrder ?? 0
+    const orderB = imagesB[0]?.sectionOrder ?? 0
+    return orderA - orderB
+  })
 
 
   /* =======================================================

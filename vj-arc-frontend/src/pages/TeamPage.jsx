@@ -7,7 +7,7 @@ const teamMembers = [
   {
     name: "Sai Srivatcha",
     position: "President",
-    image: "/team/sai.jpg",
+    image: "/team/sai.jpeg",
   },
   {
     name: "Farihan Noor",
@@ -47,7 +47,7 @@ const teamMembers = [
   {
     name: "Anitha",
     position: "Design Head",
-    image: "/team/anitha.jpg",
+    image: "/team/anitha.jpeg",
   },
   {
     name: "Tejaswini",
@@ -72,7 +72,7 @@ const teamMembers = [
   {
     name: "Ashish",
     position: "Event Coverage Co-Ordinator",
-    image: "/team/ashish.jpg",
+    image: "/team/ashish.jpeg",
   },
 ];
 

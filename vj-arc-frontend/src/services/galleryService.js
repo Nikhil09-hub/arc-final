@@ -30,6 +30,13 @@ export async function createGalleryImage(payload) {
   })
 }
 
+export async function updateGallerySectionOrder(sections) {
+  return adminRequest("gallery/sections/order", {
+    method: "PUT",
+    body: JSON.stringify({ sections }),
+  })
+}
+
 export async function updateGalleryImage(id, payload) {
   return adminRequest(`gallery/${id}`, {
     method: "PUT",

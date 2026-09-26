@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react"
 import {
   Check,
+  ChevronDown,
+  ChevronUp,
   Edit3,
   Image as ImageIcon,
   Search,
@@ -13,6 +15,7 @@ import {
   getGalleryPhotos,
   OTHER_GALLERY_EVENT_NAME,
   OTHER_GALLERY_OPTION,
+  updateGallerySectionOrder,
   updateGalleryImage,
 } from "../services/galleryService"
 
@@ -51,6 +54,8 @@ function AdminGalleryManagement({ events, refreshKey }) {
   const [deleting, setDeleting] = useState(false)
   const [notice, setNotice] = useState("")
   const [actionError, setActionError] = useState("")
+  const [savingSectionOrder, setSavingSectionOrder] = useState(false)
+  const [sectionOrder, setSectionOrder] = useState([])
 
   useEffect(() => {
     let active = true
@@ -62,6 +67,18 @@ function AdminGalleryManagement({ events, refreshKey }) {
         const result = await getGalleryPhotos()
         if (active) {
           setImages(result)
+          setSectionOrder((current) => {
+            const names = [...new Set(result.map((image) => image.eventName).filter(Boolean))]
+            const bySavedOrder = new Map()
+            result.forEach((image) => {
+              if (!bySavedOrder.has(image.eventName)) bySavedOrder.set(image.eventName, image.sectionOrder || 0)
+            })
+            const currentNames = current.filter((name) => names.includes(name))
+            const newNames = names.filter((name) => !currentNames.includes(name))
+            return current.length
+              ? [...currentNames, ...newNames]
+              : names.sort((a, b) => bySavedOrder.get(a) - bySavedOrder.get(b))
+          })
           setSelectedIds((current) => current.filter((id) => result.some((image) => image._id === id)))
         }
       } catch (error) {
@@ -82,6 +99,31 @@ function AdminGalleryManagement({ events, refreshKey }) {
     ...events.map((event) => event.title),
     ...images.map((image) => image.eventName),
   ].filter(Boolean))].sort((a, b) => a.localeCompare(b)), [events, images])
+
+  const moveSection = (index, offset) => {
+    const nextIndex = index + offset
+    if (nextIndex < 0 || nextIndex >= sectionOrder.length) return
+    setSectionOrder((current) => {
+      const next = [...current]
+      ;[next[index], next[nextIndex]] = [next[nextIndex], next[index]]
+      return next
+    })
+  }
+
+  const saveSectionOrder = async () => {
+    setSavingSectionOrder(true)
+    setActionError("")
+    try {
+      await updateGallerySectionOrder(sectionOrder)
+      const orderByName = new Map(sectionOrder.map((name, index) => [name, index]))
+      setImages((current) => current.map((image) => ({ ...image, sectionOrder: orderByName.get(image.eventName) ?? image.sectionOrder })))
+      setNotice("Gallery section order saved.")
+    } catch (error) {
+      setActionError(error.message || "Failed to save section order")
+    } finally {
+      setSavingSectionOrder(false)
+    }
+  }
 
   const visibleImages = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -138,7 +180,13 @@ function AdminGalleryManagement({ events, refreshKey }) {
         category: editCategory,
         caption: editCaption.trim(),
       })
-      setImages((current) => current.map((image) => image._id === result.data._id ? result.data : image))
+      const nextImages = images.map((image) => image._id === result.data._id ? result.data : image)
+      const availableNames = new Set(nextImages.map((image) => image.eventName).filter(Boolean))
+      setImages(nextImages)
+      setSectionOrder((current) => [
+        ...current.filter((name) => availableNames.has(name)),
+        ...[...availableNames].filter((name) => !current.includes(name)),
+      ])
       setSelectedImage(null)
       setEditing(false)
       setNotice("Gallery image updated.")
@@ -156,7 +204,13 @@ function AdminGalleryManagement({ events, refreshKey }) {
       const result = await deleteGalleryImages(pendingDeleteIds)
       if (result.deletedIds.length) {
         const deleted = new Set(result.deletedIds)
-        setImages((current) => current.filter((image) => !deleted.has(image._id)))
+        const remainingImages = images.filter((image) => !deleted.has(image._id))
+        const availableNames = new Set(remainingImages.map((image) => image.eventName).filter(Boolean))
+        setImages(remainingImages)
+        setSectionOrder((current) => [
+          ...current.filter((name) => availableNames.has(name)),
+          ...[...availableNames].filter((name) => !current.includes(name)),
+        ])
         setSelectedIds((current) => current.filter((id) => !deleted.has(id)))
         if (selectedImage && deleted.has(selectedImage._id)) setSelectedImage(null)
         setNotice(result.deletedIds.length === 1 ? "Gallery image deleted." : `${result.deletedIds.length} gallery images deleted.`)
@@ -198,6 +252,30 @@ function AdminGalleryManagement({ events, refreshKey }) {
 
       {notice && <div role="status" className="mb-4 flex items-center justify-between border border-green-400/20 bg-green-400/5 px-4 py-3 text-sm text-green-200"><span>{notice}</span><button type="button" aria-label="Dismiss notification" onClick={() => setNotice("")}><X size={16} /></button></div>}
       {actionError && <div role="alert" className="mb-4 flex items-center justify-between border border-red-400/20 bg-red-400/5 px-4 py-3 text-sm text-red-200"><span>{actionError}</span><button type="button" aria-label="Dismiss error" onClick={() => setActionError("")}><X size={16} /></button></div>}
+
+      {sectionOrder.length > 0 && (
+        <div className="mb-6 border-y border-white/10 py-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Gallery section order</h3>
+              <p className="mt-1 text-xs text-[var(--vj-muted)]">This controls the order shown on the public gallery.</p>
+            </div>
+            <button type="button" onClick={saveSectionOrder} disabled={savingSectionOrder} className="inline-flex items-center gap-2 bg-[var(--vj-blue)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+              <Check size={15} /> {savingSectionOrder ? "Saving..." : "Save order"}
+            </button>
+          </div>
+          <ol className="divide-y divide-white/10">
+            {sectionOrder.map((name, index) => (
+              <li key={name} className="flex min-w-0 items-center gap-3 py-2">
+                <span className="w-6 shrink-0 text-xs text-[var(--vj-muted)]">{index + 1}</span>
+                <span className="min-w-0 flex-1 truncate text-sm">{name}</span>
+                <button type="button" aria-label={`Move ${name} up`} title="Move up" onClick={() => moveSection(index, -1)} disabled={index === 0 || savingSectionOrder} className="grid size-8 shrink-0 place-items-center text-[var(--vj-muted)] hover:bg-white/5 hover:text-white disabled:opacity-30"><ChevronUp size={17} /></button>
+                <button type="button" aria-label={`Move ${name} down`} title="Move down" onClick={() => moveSection(index, 1)} disabled={index === sectionOrder.length - 1 || savingSectionOrder} className="grid size-8 shrink-0 place-items-center text-[var(--vj-muted)] hover:bg-white/5 hover:text-white disabled:opacity-30"><ChevronDown size={17} /></button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <label className="relative sm:col-span-2">

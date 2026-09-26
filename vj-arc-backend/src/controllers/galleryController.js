@@ -28,11 +28,44 @@ const getGallery = async (req, res) => {
 
 const createGalleryImage = async (req, res) => {
   try {
-    const image = await Gallery.create(req.body);
+    const existingSection = await Gallery.findOne({ eventName: req.body.eventName }).select("sectionOrder");
+    const lastSection = existingSection
+      ? null
+      : await Gallery.findOne().sort({ sectionOrder: -1 }).select("sectionOrder");
+    const image = await Gallery.create({
+      ...req.body,
+      sectionOrder: existingSection?.sectionOrder ?? (lastSection?.sectionOrder ?? -1) + 1,
+    });
 
     res.status(201).json({
       success: true,
       data: image,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+const updateGallerySectionOrder = async (req, res) => {
+  try {
+    const { sections } = req.body;
+    if (!Array.isArray(sections) || sections.some((name) => typeof name !== "string" || !name.trim()) || new Set(sections).size !== sections.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide a unique list of gallery section titles",
+      });
+    }
+
+    await Promise.all(sections.map((eventName, sectionOrder) =>
+      Gallery.updateMany({ eventName }, { $set: { sectionOrder } })
+    ));
+
+    res.status(200).json({
+      success: true,
+      data: sections,
     });
   } catch (error) {
     res.status(500).json({
@@ -96,6 +129,7 @@ const deleteGalleryImage = async (req, res) => {
 module.exports = {
   getGallery,
   createGalleryImage,
+  updateGallerySectionOrder,
   updateGalleryImage,
   deleteGalleryImage,
 };

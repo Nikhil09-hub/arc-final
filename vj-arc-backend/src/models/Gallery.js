@@ -10,6 +10,11 @@ const gallerySchema = new mongoose.Schema(
       trim: true,
     },
 
+    sectionOrder: {
+      type: Number,
+      default: 0,
+    },
+
     imageUrl: {
       type: String,
       required: true,
