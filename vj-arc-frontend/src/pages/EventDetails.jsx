@@ -19,11 +19,45 @@ import { getEventBySlug } from "../services/eventService"
 function formatDate(date) {
   if (!date) return "Date TBA"
 
-  return new Date(date).toLocaleDateString("en-IN", {
+  const value = new Date(date)
+  if (Number.isNaN(value.getTime())) return "Date TBA"
+
+  return value.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
   })
+}
+
+function formatTime(date) {
+  const value = new Date(date)
+  if (Number.isNaN(value.getTime())) return ""
+
+  return value.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
+
+function formatDateTime(date) {
+  return `${formatDate(date)} · ${formatTime(date)}`
+}
+
+function formatDateRange(event) {
+  if (!event.startDate) return "Date TBA"
+
+  const start = new Date(event.startDate)
+  if (Number.isNaN(start.getTime())) return "Date TBA"
+  if (!event.endDate) return formatDateTime(start)
+
+  const end = new Date(event.endDate)
+  if (Number.isNaN(end.getTime())) return formatDateTime(start)
+
+  if (start.toDateString() === end.toDateString()) {
+    return `${formatDate(start)} · ${formatTime(start)} – ${formatTime(end)}`
+  }
+
+  return `${formatDateTime(start)} — ${formatDateTime(end)}`
 }
 
 
@@ -237,15 +271,12 @@ function EventDetails() {
 
 
   /* =======================================
-     LOADING
-  ======================================= */
-
+    ======================================= */
   if (loading) {
     return (
       <main className="min-h-screen bg-[var(--vj-black)] px-5 py-10 text-[var(--vj-white)] sm:px-6">
         <div className="section-container py-16 text-center">
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--vj-blue)]">
-            VJ ARC / EVENT
           </p>
 
           <p className="mt-3 text-sm text-[var(--vj-muted)]">
@@ -291,6 +322,11 @@ function EventDetails() {
     )
   }
 
+  const eventEndDate = event.endDate || event.startDate
+  const eventEndTime = eventEndDate
+    ? new Date(eventEndDate).getTime()
+    : Number.NaN
+  const isPastEvent = Number.isFinite(eventEndTime) && eventEndTime < Date.now()
 
   /* =======================================
      GALLERY
@@ -446,7 +482,7 @@ function EventDetails() {
                     </p>
 
                     <p className="mt-0.5 truncate text-xs font-medium sm:text-sm">
-                      {formatDate(event.startDate)}
+                      {formatDateRange(event)}
                     </p>
 
                   </div>
@@ -495,7 +531,12 @@ function EventDetails() {
                   REGISTER BUTTON
               ================================= */}
 
-              {event.registration?.enabled &&
+              {isPastEvent ? (
+                <p role="status" className="mt-4 rounded-lg border border-white/10 bg-[var(--vj-dark)] px-4 py-3 text-sm text-[var(--vj-muted)]">
+                  Event Ended · Registrations Closed
+                </p>
+              ) : (
+                event.registration?.enabled &&
                 event.registration?.link && (
                   <div className="mt-4">
 
@@ -511,7 +552,8 @@ function EventDetails() {
                     </a>
 
                   </div>
-                )}
+                )
+              )}
 
 
             </div>
@@ -617,16 +659,8 @@ function EventDetails() {
             </p>
 
             <p className="mt-1 text-sm font-medium">
-              {formatDate(event.startDate)}
+              {formatDateRange(event)}
             </p>
-
-            {event.endDate &&
-              new Date(event.endDate).getTime() !==
-                new Date(event.startDate).getTime() && (
-                <p className="mt-0.5 text-xs text-[var(--vj-muted)]">
-                  to {formatDate(event.endDate)}
-                </p>
-              )}
 
           </div>
 
@@ -664,8 +698,11 @@ function EventDetails() {
               Registration
             </p>
 
-            {event.registration?.enabled &&
-            event.registration?.link ? (
+            {isPastEvent ? (
+              <p role="status" className="mt-1 text-sm text-[var(--vj-muted)]">
+                Registrations Closed
+              </p>
+            ) : event.registration?.enabled && event.registration?.link ? (
 
               <a
                 href={event.registration.link}
@@ -873,7 +910,8 @@ function EventDetails() {
 
             {/* REGISTER */}
 
-            {event.registration?.enabled &&
+            {!isPastEvent &&
+              event.registration?.enabled &&
               event.registration?.link && (
                 <a
                   href={event.registration.link}

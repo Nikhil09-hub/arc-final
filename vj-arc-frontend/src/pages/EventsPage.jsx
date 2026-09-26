@@ -55,25 +55,42 @@ const formatDate = (date) => {
   })
 }
 
+const formatTime = (date) => {
+  const value = new Date(date)
+  if (Number.isNaN(value.getTime())) return ""
+
+  return value.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
+
+const formatDateTime = (date) =>
+  `${formatDate(date)} · ${formatTime(date)}`
+
 
 const formatDateRange = (event) => {
   if (!event.startDate) {
     return "Date TBA"
   }
 
-  const start = formatDate(event.startDate)
+  const startDate = new Date(event.startDate)
+  if (Number.isNaN(startDate.getTime())) return "Date TBA"
+  const start = formatDate(startDate)
 
   if (!event.endDate) {
-    return start
+    return formatDateTime(startDate)
   }
 
-  const end = formatDate(event.endDate)
+  const endDate = new Date(event.endDate)
+  if (Number.isNaN(endDate.getTime())) return formatDateTime(startDate)
+  const end = formatDate(endDate)
 
   if (start === end) {
-    return start
+    return `${start} · ${formatTime(startDate)} – ${formatTime(endDate)}`
   }
 
-  return `${start} — ${end}`
+  return `${formatDateTime(startDate)} — ${formatDateTime(endDate)}`
 }
 
 
@@ -134,7 +151,7 @@ const pad = (value) =>
 const statusText = {
   upcoming: "UPCOMING",
   ongoing: "ONGOING",
-  past: "COMPLETED",
+  past: "EVENT ENDED",
 }
 
 
