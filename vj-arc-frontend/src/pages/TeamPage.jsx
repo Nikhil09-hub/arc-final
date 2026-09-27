@@ -10,9 +10,9 @@ const teamMembers = [
     image: "/team/sai.jpeg",
   },
   {
-    name: "Farihan Noor",
+    name: "Farihanoor",
     position: "General Secretary",
-    image: "/team/farihan.jpg",
+    image: "/team/farihan.jpeg",
   },
   {
     name: "Srishanth",

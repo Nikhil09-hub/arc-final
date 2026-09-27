@@ -23,12 +23,14 @@ const socialLinks = [
     name: "Instagram",
     href: "https://www.instagram.com/vj_arc/",
     Icon: FaInstagram,
+    iconClassName: "drop-shadow-[0_0_5px_rgba(228,64,95,0.55)] group-hover:drop-shadow-[0_0_8px_rgba(228,64,95,0.8)]",
     className: "border-[#E4405F]/25 bg-[#E4405F]/10 text-[#E4405F] hover:bg-[#E4405F]/20 hover:shadow-[0_0_22px_rgba(228,64,95,0.2)]",
   },
   {
     name: "LinkedIn",
     href: "https://www.linkedin.com/company/vnr-vj-arc/",
     Icon: FaLinkedinIn,
+    iconClassName: "drop-shadow-[0_0_5px_rgba(10,102,194,0.55)] group-hover:drop-shadow-[0_0_8px_rgba(10,102,194,0.8)]",
     className: "border-[#0A66C2]/25 bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20 hover:shadow-[0_0_22px_rgba(10,102,194,0.2)]",
   },
 ]
@@ -316,7 +318,7 @@ function Navbar() {
               <motion.img
                 src="/images/logo.png"
                 alt="VJ ARC — AI Research and Coding"
-                className="h-11 w-11 object-contain"
+                className="h-12 w-12 object-contain"
                 animate={{
                   rotate: scrolled
                     ? 0
@@ -465,7 +467,7 @@ function Navbar() {
 
 
           <div className="ml-auto hidden items-center gap-2 md:flex">
-            {socialLinks.map(({ name, href, Icon, className }) => (
+            {socialLinks.map(({ name, href, Icon, iconClassName, className }) => (
               <motion.a
                 key={name}
                 href={href}
@@ -475,9 +477,10 @@ function Navbar() {
                 title={name}
                 whileHover={{ y: -2, scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
-                className={`grid size-10 place-items-center rounded-full border backdrop-blur-sm transition ${className}`}
+                className={`group inline-flex h-10 items-center gap-2 rounded-full border px-3 text-[11px] font-medium backdrop-blur-sm transition ${className}`}
               >
-                <Icon size={18} strokeWidth={2.2} />
+                <Icon size={21} strokeWidth={2.2} className={iconClassName} />
+                <span>{name}</span>
               </motion.a>
             ))}
           </div>
@@ -488,7 +491,7 @@ function Navbar() {
           ================================= */}
 
           <div className="ml-auto flex items-center gap-2 md:hidden">
-            {socialLinks.map(({ name, href, Icon, className }) => (
+            {socialLinks.map(({ name, href, Icon, iconClassName, className }) => (
               <a
                 key={name}
                 href={href}
@@ -496,9 +499,10 @@ function Navbar() {
                 rel="noopener noreferrer"
                 aria-label={name}
                 title={name}
-                className={`grid size-9 place-items-center rounded-full border transition ${className}`}
+                className={`group inline-flex h-9 items-center gap-1.5 rounded-full border px-2 text-[9px] font-medium transition ${className}`}
               >
-                <Icon size={17} strokeWidth={2.2} />
+                <Icon size={20} strokeWidth={2.2} className={iconClassName} />
+                <span>{name}</span>
               </a>
             ))}
           </div>

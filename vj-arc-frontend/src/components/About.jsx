@@ -299,16 +299,16 @@ function About() {
                 </h3>
 
                 <p className="font-sans text-[var(--vj-muted)] text-base leading-relaxed">
-                  VJ ARC (AI Research and Coding Club) was established through the
+                  VJ ARC was established through the
                   strategic merger of two renowned departmental bodies:{" "}
                   <strong className="text-[var(--vj-white)] font-medium">
                     VJ Hackslash
                   </strong>{" "}
-                  (software development & competitive programming) and{" "}
+                  and{" "}
                   <strong className="text-[var(--vj-white)] font-medium">
                     VJ CreatinAI
                   </strong>{" "}
-                  (artificial intelligence & innovation).
+                  to create  a single platform for reasearch, innovation, and technical excellence.
                 </p>
               </div>
 

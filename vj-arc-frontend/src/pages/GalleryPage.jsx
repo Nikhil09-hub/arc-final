@@ -8,6 +8,32 @@ const categories = [
   "other-activities",
 ]
 
+function getOptimizedImageUrl(imageUrl, width) {
+  try {
+    const url = new URL(imageUrl)
+
+    if (url.hostname.toLowerCase() !== "res.cloudinary.com") {
+      return imageUrl
+    }
+
+    const pathSegments = url.pathname.split("/")
+    const uploadIndex = pathSegments.findIndex(
+      (segment, index) => segment === "upload" && pathSegments[index - 1] === "image"
+    )
+
+    if (uploadIndex === -1) {
+      return imageUrl
+    }
+
+    pathSegments.splice(uploadIndex + 1, 0, `w_${width}`, "q_auto", "f_auto")
+    url.pathname = pathSegments.join("/")
+
+    return url.toString()
+  } catch {
+    return imageUrl
+  }
+}
+
 function formatCategory(category) {
   return category
     .split("-")
@@ -102,12 +128,13 @@ function EventCarousel({ eventImages, eventName, onImageClick }) {
             <div className="aspect-[4/3] overflow-hidden bg-[var(--vj-dark)]">
 
               <img
-                src={image.imageUrl}
+                src={getOptimizedImageUrl(image.imageUrl, 600)}
                 alt={
                   image.caption ||
                   `${eventName} photo`
                 }
                 loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
               />
 
@@ -411,11 +438,13 @@ function GalleryPage() {
 
           {/* Fullscreen Image */}
           <img
-            src={selectedImage.imageUrl}
+            src={getOptimizedImageUrl(selectedImage.imageUrl, 1600)}
             alt={
               selectedImage.caption ||
               "VJ ARC gallery image"
             }
+            loading="eager"
+            decoding="async"
             className="max-h-[90vh] max-w-[95vw] rounded-xl object-contain"
             onClick={(event) => event.stopPropagation()}
           />
