@@ -3,7 +3,6 @@ import { useRef, useEffect, useState } from "react"
 import {
   Brain,
   BarChart3,
-  ShieldCheck,
   Code2,
   Cpu,
   FlaskConical,
@@ -153,7 +152,7 @@ const STATS = [
 ]
 
 /* -------------------------------------------------------
-   8 CORE AREAS OF FOCUS
+   7 CORE AREAS OF FOCUS
 ------------------------------------------------------- */
 const FOCUS_AREAS = [
   {
@@ -167,12 +166,6 @@ const FOCUS_AREAS = [
     title: "Data Science & Analytics",
     description:
       "Data mining, big data pipelines, statistical modeling, and actionable business visualization.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Cyber Security",
-    description:
-      "Defensive engineering, vulnerability assessments, penetration testing, and cryptography.",
   },
   {
     icon: Code2,
@@ -471,7 +464,7 @@ function About() {
         </div>
 
         {/* =======================================================
-            4. 8 PILLARS OF EXCELLENCE / CORE AREAS OF FOCUS
+            4. 7 PILLARS OF EXCELLENCE / CORE AREAS OF FOCUS
            ======================================================= */}
         <div>
           <div className="mb-8">
@@ -482,7 +475,7 @@ function About() {
               transition={{ duration: 0.6 }}
               className="mb-3 inline-flex items-center gap-2 rounded-full border border-[var(--vj-blue)]/20 bg-[var(--vj-blue)]/10 px-3.5 py-1 font-mono text-[var(--vj-blue)] text-xs sm:text-sm uppercase tracking-[0.3em] font-medium"
             >
-              8 Pillars of Excellence
+              7 Pillars of Excellence
             </motion.div>
 
             <motion.h3
