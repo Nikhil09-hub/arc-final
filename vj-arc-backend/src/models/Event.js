@@ -1,5 +1,110 @@
 const mongoose = require("mongoose");
 
+const registrationSchema = new mongoose.Schema(
+  {
+    enabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    type: {
+      type: String,
+      enum: ["none", "external", "internal"],
+      default: function () {
+        if (this.enabled && this.link && this.link.trim() !== "") {
+          return "external";
+        }
+        if (this.enabled) {
+          return "internal";
+        }
+        return "none";
+      },
+    },
+
+    format: {
+      type: String,
+      enum: ["individual", "team"],
+      default: "individual",
+    },
+
+    team: {
+      minimumMembers: {
+        type: Number,
+        default: 2,
+        min: 2,
+      },
+      maximumMembers: {
+        type: Number,
+        default: 4,
+        min: 2,
+      },
+      teamNameEnabled: {
+        type: Boolean,
+        default: true,
+      },
+      teamNameRequired: {
+        type: Boolean,
+        default: true,
+      },
+    },
+
+    link: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    startDate: {
+      type: Date,
+      default: null,
+    },
+
+    endDate: {
+      type: Date,
+      default: null,
+      validate: {
+        validator: function (value) {
+          if (!value || !this.startDate) return true;
+          return new Date(value) > new Date(this.startDate);
+        },
+        message: "Registration end date must be after registration start date",
+      },
+    },
+  },
+  {
+    _id: false,
+    toJSON: { virtuals: true, getters: true },
+    toObject: { virtuals: true, getters: true },
+  }
+);
+
+// Backward compatibility: If document was saved without type, derive it dynamically
+registrationSchema.path("type").get(function (val) {
+  if (val) return val;
+  if (this.enabled && this.link && this.link.trim() !== "") {
+    return "external";
+  }
+  return this.enabled ? "internal" : "none";
+});
+
+// Dynamic registration status: "not-open", "open", "closed"
+registrationSchema.virtual("status").get(function () {
+  if (!this.enabled) return "closed";
+  const now = new Date();
+  if (this.startDate && now < new Date(this.startDate)) {
+    return "not-open";
+  }
+  if (this.endDate && now > new Date(this.endDate)) {
+    return "closed";
+  }
+  if (this.startDate || this.endDate) {
+    return "open";
+  }
+  const regType = this.type;
+  if (regType === "external") return "open";
+  return "closed";
+});
+
 const eventSchema = new mongoose.Schema(
   {
     title: {
@@ -82,15 +187,8 @@ const eventSchema = new mongoose.Schema(
     ],
 
     registration: {
-      enabled: {
-        type: Boolean,
-        default: false,
-      },
-
-      link: {
-        type: String,
-        default: "",
-      },
+      type: registrationSchema,
+      default: () => ({}),
     },
 
     social: {
@@ -119,7 +217,49 @@ const eventSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true, getters: true },
+    toObject: { virtuals: true, getters: true },
   }
 );
 
+eventSchema.methods.getRegistrationStatus = function (now = new Date()) {
+  const reg = this.registration;
+  if (!reg || !reg.enabled) return "closed";
+  const currentTime = now instanceof Date ? now : new Date(now);
+  if (reg.startDate && currentTime < new Date(reg.startDate)) {
+    return "not-open";
+  }
+  if (reg.endDate && currentTime > new Date(reg.endDate)) {
+    return "closed";
+  }
+  if (reg.startDate || reg.endDate) {
+    return "open";
+  }
+  const regType = reg.type;
+  if (regType === "external") return "open";
+  return "closed";
+};
+
+eventSchema.add({
+  visibility: {
+    type: String,
+    enum: ["public", "admin"],
+    default: "public",
+  },
+});
+
+eventSchema.pre("validate", function () {
+  const registrationTeam = this.registration?.team;
+  if (
+    registrationTeam &&
+    registrationTeam.maximumMembers < registrationTeam.minimumMembers
+  ) {
+    this.invalidate(
+      "registration.team.maximumMembers",
+      "Maximum team size must be at least the minimum team size"
+    );
+  }
+});
+
+module.exports = mongoose.model("Event", eventSchema);
 module.exports = mongoose.model("Event", eventSchema);

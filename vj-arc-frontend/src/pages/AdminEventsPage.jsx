@@ -9,7 +9,7 @@ import {
   Trash2,
   X,
 } from "lucide-react"
-import { getEvents } from "../services/eventService"
+import { getAdminEvents } from "../services/eventService"
 import { adminRequest } from "../services/adminApi"
 
 const categoryNames = {
@@ -55,7 +55,7 @@ function AdminEventsPage() {
       setLoading(true)
       setError("")
       try {
-        const data = await getEvents()
+        const data = await getAdminEvents()
         if (active) setEvents(data)
       } catch (loadError) {
         if (active) setError(loadError.message || "Unable to load events")
@@ -134,11 +134,15 @@ function AdminEventsPage() {
                     <h2 className="text-base font-semibold">{event.title}</h2>
                     <span className={`border px-2 py-1 font-mono text-[9px] uppercase tracking-[0.12em] ${status === "Upcoming" ? "border-[var(--vj-blue)]/40 text-[var(--vj-blue)]" : status === "Ongoing" ? "border-green-400/30 text-green-300" : "border-white/15 text-[var(--vj-muted)]"}`}>{status}</span>
                   </div>
-                  <p className="mt-1 text-xs text-[var(--vj-muted)]">{categoryNames[event.category] || event.category} · {event.venue || "Venue not set"}</p>
+                  <p className="mt-1 text-xs text-[var(--vj-muted)]">{categoryNames[event.category] || event.category} · {event.venue || "Venue not set"} · {event.visibility === "admin" ? "Admin Only" : "Public"}</p>
                   <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-[var(--vj-muted)]"><span>{formatDate(event.startDate)}</span><span aria-hidden="true">to</span><span>{formatDate(event.endDate)}</span></p>
                 </div>
                 <div className="flex items-center gap-1 md:justify-end">
-                  <Link to={`/events/${event.slug}`} target="_blank" rel="noreferrer" aria-label={`View ${event.title}`} title="View public event" className="rounded-lg p-2 text-[var(--vj-muted)] hover:bg-white/5 hover:text-white"><ArrowUpRight size={18} /></Link>
+                  {event.visibility === "admin" ? (
+                    <Link to={`/events/${event.slug}/register`} aria-label={`Test registration for ${event.title}`} title="Test registration (admin only)" className="rounded-lg p-2 text-[var(--vj-muted)] hover:bg-white/5 hover:text-white"><ArrowUpRight size={18} /></Link>
+                  ) : (
+                    <Link to={`/events/${event.slug}`} target="_blank" rel="noreferrer" aria-label={`View ${event.title}`} title="View public event" className="rounded-lg p-2 text-[var(--vj-muted)] hover:bg-white/5 hover:text-white"><ArrowUpRight size={18} /></Link>
+                  )}
                   <Link to={`/admin/events/edit/${event._id}`} aria-label={`Edit ${event.title}`} title="Edit event" className="rounded-lg p-2 text-[var(--vj-muted)] hover:bg-white/5 hover:text-white"><Pencil size={17} /></Link>
                   <button type="button" onClick={() => setEventToDelete(event)} aria-label={`Delete ${event.title}`} title="Delete event" className="rounded-lg p-2 text-[var(--vj-muted)] hover:bg-red-400/10 hover:text-red-300"><Trash2 size={17} /></button>
                 </div>

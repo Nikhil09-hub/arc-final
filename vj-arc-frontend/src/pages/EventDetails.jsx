@@ -60,6 +60,12 @@ function formatDateRange(event) {
   return `${formatDateTime(start)} — ${formatDateTime(end)}`
 }
 
+function getRegistrationType(registration = {}) {
+  if (registration.type) return registration.type
+  if (registration.link) return "external"
+  return registration.enabled ? "internal" : "none"
+}
+
 
 /* =========================================
    COUNTDOWN CALCULATOR
@@ -102,7 +108,7 @@ function getCountdown(milliseconds) {
    COMPACT EVENT COUNTDOWN
 ========================================= */
 
-function EventCountdown({ startDate }) {
+function EventCountdown({ startDate, label = "Event Starts In" }) {
   const calculateTime = () =>
     new Date(startDate).getTime() - Date.now()
 
@@ -162,7 +168,7 @@ function EventCountdown({ startDate }) {
         />
 
         <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[var(--vj-blue)]">
-          Event Starts In
+          {label}
         </p>
       </div>
 
@@ -190,6 +196,86 @@ function EventCountdown({ startDate }) {
   )
 }
 
+function RegistrationAction({ event, isPastEvent, compact = false }) {
+  const registration = event.registration || {}
+  const registrationType = getRegistrationType(registration)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (registrationType !== "internal") return undefined
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [registrationType])
+
+  if (!registration.enabled) return null
+  if (isPastEvent && registrationType !== "internal") {
+    return (
+      <p role="status" className={compact ? "mt-1 text-sm text-[var(--vj-muted)]" : "mt-4 rounded-lg border border-white/10 bg-[var(--vj-dark)] px-4 py-3 text-sm text-[var(--vj-muted)]"}>
+        REGISTRATION CLOSED
+      </p>
+    )
+  }
+
+  if (registrationType === "external" && registration.link) {
+    return (
+      <a
+        href={registration.link}
+        target="_blank"
+        rel="noreferrer"
+        className={compact
+          ? "mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--vj-blue)] transition hover:opacity-80"
+          : "inline-flex items-center gap-2.5 rounded-full bg-[var(--vj-blue)] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_28px_rgba(37,99,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(37,99,255,0.4)]"}
+      >
+        Register Now
+        <ArrowUpRight size={compact ? 14 : 16} />
+      </a>
+    )
+  }
+
+  if (registrationType !== "internal") return null
+
+  const startTime = registration.startDate ? new Date(registration.startDate).getTime() : Number.NaN
+  const endTime = registration.endDate ? new Date(registration.endDate).getTime() : Number.NaN
+  const hasValidWindow =
+    Number.isFinite(startTime) && Number.isFinite(endTime) && endTime > startTime
+  if (!hasValidWindow || !now || now > endTime) {
+    return (
+      <p role="status" className={compact ? "mt-1 text-sm text-[var(--vj-muted)]" : "mt-4 rounded-lg border border-white/10 bg-[var(--vj-dark)] px-4 py-3 text-sm text-[var(--vj-muted)]"}>
+        REGISTRATION CLOSED
+      </p>
+    )
+  }
+
+  if (now < startTime) {
+    return (
+      <div className={compact ? "mt-1" : "mt-4"}>
+        <p className="font-medium text-amber-300">Registration Opens Soon</p>
+        <p className="mt-1 text-sm text-[var(--vj-muted)]">
+          Opens on {formatDateTime(registration.startDate)}
+        </p>
+        {!compact && (
+          <EventCountdown
+            startDate={registration.startDate}
+            label="Registration Opens In"
+          />
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <Link
+      to={`/events/${event.slug}/register`}
+      className={compact
+        ? "mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--vj-blue)] transition hover:opacity-80"
+        : "inline-flex items-center gap-2.5 rounded-full bg-[var(--vj-blue)] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_28px_rgba(37,99,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(37,99,255,0.4)]"}
+    >
+      Register Now
+      <ArrowUpRight size={compact ? 14 : 16} />
+    </Link>
+  )
+}
+
 
 /* =========================================
    EVENT DETAILS PAGE
@@ -199,6 +285,7 @@ function EventDetails() {
   const { slug } = useParams()
 
   const [event, setEvent] = useState(null)
+  const [eventHasEnded, setEventHasEnded] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedImage, setSelectedImage] =
@@ -227,6 +314,13 @@ function EventDetails() {
         const data = await getEventBySlug(slug)
 
         setEvent(data)
+        const eventEndDate = data.endDate || data.startDate
+        const eventEndTime = eventEndDate
+          ? new Date(eventEndDate).getTime()
+          : Number.NaN
+        setEventHasEnded(
+          Number.isFinite(eventEndTime) && eventEndTime < Date.now()
+        )
       } catch (err) {
         console.error(
           "Error fetching event:",
@@ -322,11 +416,8 @@ function EventDetails() {
     )
   }
 
-  const eventEndDate = event.endDate || event.startDate
-  const eventEndTime = eventEndDate
-    ? new Date(eventEndDate).getTime()
-    : Number.NaN
-  const isPastEvent = Number.isFinite(eventEndTime) && eventEndTime < Date.now()
+  const isPastEvent = eventHasEnded
+  const registrationType = getRegistrationType(event.registration)
 
   /* =======================================
      GALLERY
@@ -531,28 +622,15 @@ function EventDetails() {
                   REGISTER BUTTON
               ================================= */}
 
-              {isPastEvent ? (
+              {isPastEvent && registrationType !== "internal" ? (
                 <p role="status" className="mt-4 rounded-lg border border-white/10 bg-[var(--vj-dark)] px-4 py-3 text-sm text-[var(--vj-muted)]">
                   Event Ended · Registrations Closed
                 </p>
               ) : (
-                event.registration?.enabled &&
-                event.registration?.link && (
-                  <div className="mt-4">
-
-                    <a
-                      href={event.registration.link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2.5 rounded-full bg-[var(--vj-blue)] px-6 py-3 text-sm font-semibold text-white shadow-[0_0_28px_rgba(37,99,255,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(37,99,255,0.4)]"
-                    >
-                      Register Now
-
-                      <ArrowUpRight size={16} />
-                    </a>
-
-                  </div>
-                )
+                <RegistrationAction
+                  event={event}
+                  isPastEvent={isPastEvent}
+                />
               )}
 
 
@@ -698,23 +776,12 @@ function EventDetails() {
               Registration
             </p>
 
-            {isPastEvent ? (
-              <p role="status" className="mt-1 text-sm text-[var(--vj-muted)]">
-                Registrations Closed
-              </p>
-            ) : event.registration?.enabled && event.registration?.link ? (
-
-              <a
-                href={event.registration.link}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--vj-blue)] transition hover:opacity-80"
-              >
-                Register Now
-
-                <ArrowUpRight size={14} />
-              </a>
-
+            {event.registration?.enabled ? (
+              <RegistrationAction
+                event={event}
+                isPastEvent={isPastEvent}
+                compact
+              />
             ) : (
 
               <p className="mt-1 text-sm text-[var(--vj-muted)]">
@@ -910,22 +977,13 @@ function EventDetails() {
 
             {/* REGISTER */}
 
-            {!isPastEvent &&
-              event.registration?.enabled &&
-              event.registration?.link && (
-                <a
-                  href={event.registration.link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--vj-blue)] px-5 py-2.5 text-xs font-semibold text-white shadow-[0_0_20px_rgba(37,99,255,0.2)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(37,99,255,0.35)]"
-                >
-
-                  Register Now
-
-                  <ArrowUpRight size={14} />
-
-                </a>
-              )}
+            {(!isPastEvent || registrationType === "internal") && (
+              <RegistrationAction
+                event={event}
+                isPastEvent={isPastEvent}
+                compact
+              />
+            )}
 
           </div>
 

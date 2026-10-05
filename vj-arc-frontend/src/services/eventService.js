@@ -1,3 +1,5 @@
+import { adminRequest } from "./adminApi"
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getEvents = async (status = "") => {
@@ -37,6 +39,16 @@ export const getEventById = async (id) => {
     throw error;
   }
 };
+
+export const getAdminEvents = async () => {
+  const result = await adminRequest("events/admin")
+  return result.data
+}
+
+export const getAdminEventBySlug = async (slug) => {
+  const result = await adminRequest(`events/admin/slug/${encodeURIComponent(slug)}`)
+  return result.data
+}
 
 export const getEventBySlug = async (slug) => {
   try {

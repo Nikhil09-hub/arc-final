@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Users,
   X,
 } from "lucide-react"
 import { logoutAdmin } from "../services/authService"
@@ -16,6 +17,7 @@ const navigation = [
   { label: "Events", to: "/admin/events", icon: CalendarDays },
   { label: "Gallery", to: "/admin/gallery", icon: Images },
   { label: "Event Documents", to: "/admin/event-documents", icon: ClipboardList },
+  { label: "Registrations", to: "/admin/registrations", icon: Users },
 ]
 
 export default function AdminLayout() {

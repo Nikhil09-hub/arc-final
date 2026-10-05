@@ -30,8 +30,22 @@ function createInitialValues(event) {
     endDate: toLocalDateTime(event?.endDate),
     venue: event?.venue || "",
     coverImage: event?.coverImage || "",
-    registrationEnabled: Boolean(event?.registration?.enabled),
+    visibility: event?.visibility || "public",
+    registrationType:
+      event?.registration?.type ||
+      (event?.registration?.link
+        ? "external"
+        : event?.registration?.enabled
+          ? "internal"
+          : "none"),
     registrationLink: event?.registration?.link || "",
+    registrationFormat: event?.registration?.format || "individual",
+    registrationStartDate: toLocalDateTime(event?.registration?.startDate),
+    registrationEndDate: toLocalDateTime(event?.registration?.endDate),
+    minimumMembers: event?.registration?.team?.minimumMembers ?? 2,
+    maximumMembers: event?.registration?.team?.maximumMembers ?? 4,
+    teamNameEnabled: event?.registration?.team?.teamNameEnabled ?? true,
+    teamNameRequired: event?.registration?.team?.teamNameRequired ?? true,
     linkedin: event?.social?.linkedin || "",
     instagram: event?.social?.instagram || "",
     reportAvailable: Boolean(event?.report?.available),
@@ -100,6 +114,31 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
       return
     }
 
+    if (values.registrationType === "internal") {
+      const registrationStart = new Date(values.registrationStartDate)
+      const registrationEnd = new Date(values.registrationEndDate)
+      if (
+        !values.registrationStartDate ||
+        !values.registrationEndDate ||
+        Number.isNaN(registrationStart.getTime()) ||
+        Number.isNaN(registrationEnd.getTime()) ||
+        registrationEnd <= registrationStart
+      ) {
+        setFormError("Registration end date and time must be after the start date and time.")
+        return
+      }
+      if (
+        values.registrationFormat === "team" &&
+        (!Number.isInteger(Number(values.minimumMembers)) ||
+          !Number.isInteger(Number(values.maximumMembers)) ||
+          Number(values.minimumMembers) < 2 ||
+          Number(values.maximumMembers) < Number(values.minimumMembers))
+      ) {
+        setFormError("Maximum team size must be at least the minimum team size, and teams must allow at least two members.")
+        return
+      }
+    }
+
     let coverImage = values.coverImage
 
     if (coverFile) {
@@ -142,9 +181,29 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
       endDate: new Date(values.endDate).toISOString(),
       venue: values.venue.trim(),
       coverImage,
+      visibility: values.visibility,
       registration: {
-        enabled: values.registrationEnabled,
-        link: values.registrationLink.trim(),
+        enabled: values.registrationType !== "none",
+        type: values.registrationType,
+        format:
+          values.registrationType === "internal"
+            ? values.registrationFormat
+            : "individual",
+        link: values.registrationType === "external" ? values.registrationLink.trim() : "",
+        startDate:
+          values.registrationType === "internal"
+            ? new Date(values.registrationStartDate).toISOString()
+            : null,
+        endDate:
+          values.registrationType === "internal"
+            ? new Date(values.registrationEndDate).toISOString()
+            : null,
+        team: {
+          minimumMembers: Number(values.minimumMembers),
+          maximumMembers: Number(values.maximumMembers),
+          teamNameEnabled: values.teamNameEnabled,
+          teamNameRequired: values.teamNameRequired,
+        },
       },
       social: {
         linkedin: values.linkedin.trim(),
@@ -204,6 +263,33 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
       </section>
 
       <section className="space-y-4">
+        <h2 className="border-b border-white/10 pb-3 text-base font-semibold">EVENT VISIBILITY</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            ["public", "Public Event"],
+            ["admin", "Admin Only"],
+          ].map(([value, label]) => (
+            <label key={value} className="flex items-center gap-3 rounded-lg border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm">
+              <input
+                type="radio"
+                name="visibility"
+                value={value}
+                checked={values.visibility === value}
+                onChange={() => update("visibility", value)}
+                className="size-4 accent-[var(--vj-blue)]"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+        {values.visibility === "admin" && (
+          <p className="text-xs leading-relaxed text-[var(--vj-muted)]">
+            Admin-only events are hidden from the public website and are intended for internal testing or administration.
+          </p>
+        )}
+      </section>
+
+      <section className="space-y-4">
         <div>
           <h2 className="border-b border-white/10 pb-3 text-base font-semibold">Cover image</h2>
           <p className="mt-2 text-xs text-[var(--vj-muted)]">JPG, PNG, or WEBP, up to 10 MB.</p>
@@ -225,11 +311,71 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
 
       <section className="space-y-4">
         <h2 className="border-b border-white/10 pb-3 text-base font-semibold">Registration and links</h2>
-        <label className="flex items-center gap-3 text-sm">
-          <input type="checkbox" checked={values.registrationEnabled} onChange={(event) => update("registrationEnabled", event.target.checked)} className="size-4 accent-[var(--vj-blue)]" />
-          Registration enabled
+        <label className="block text-sm text-[var(--vj-muted)]">
+          Registration method
+          <select
+            value={values.registrationType}
+            onChange={(event) => update("registrationType", event.target.value)}
+            className={fieldClass}
+          >
+            <option value="none">No Registration</option>
+            <option value="external">External Registration</option>
+            <option value="internal">VJ ARC Website</option>
+          </select>
         </label>
-        {input("Registration link", "registrationLink", "url", values.registrationEnabled, { disabled: !values.registrationEnabled, placeholder: "https://" })}
+        {values.registrationType === "external" &&
+          input("External registration URL", "registrationLink", "url", true, { placeholder: "https://" })}
+        {values.registrationType === "internal" && (
+          <>
+            <label className="block text-sm text-[var(--vj-muted)]">
+              Registration format
+              <select
+                value={values.registrationFormat}
+                onChange={(event) => update("registrationFormat", event.target.value)}
+                className={fieldClass}
+              >
+                <option value="individual">Individual</option>
+                <option value="team">Team</option>
+              </select>
+            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              {input("Registration opens", "registrationStartDate", "datetime-local", true)}
+              {input("Registration closes", "registrationEndDate", "datetime-local", true)}
+            </div>
+            {values.registrationFormat === "team" && (
+              <div className="space-y-4 rounded-xl border border-white/10 bg-[var(--vj-black)] p-4 sm:p-5">
+                <h3 className="text-sm font-semibold">Team registration</h3>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {input("Minimum members (including leader)", "minimumMembers", "number", true, { min: 2, step: 1 })}
+                  {input("Maximum members (including leader)", "maximumMembers", "number", true, { min: 2, step: 1 })}
+                </div>
+                <label className="flex items-center gap-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={values.teamNameEnabled}
+                    onChange={(event) => update("teamNameEnabled", event.target.checked)}
+                    className="size-4 accent-[var(--vj-blue)]"
+                  />
+                  Enable team name
+                </label>
+                {values.teamNameEnabled && (
+                  <label className="flex items-center gap-3 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={values.teamNameRequired}
+                      onChange={(event) => update("teamNameRequired", event.target.checked)}
+                      className="size-4 accent-[var(--vj-blue)]"
+                    />
+                    Require a team name
+                  </label>
+                )}
+                <p className="text-xs leading-relaxed text-[var(--vj-muted)]">
+                  Team leaders provide their name, roll number, email, and phone. Each other member provides their name, roll number, and email.
+                </p>
+              </div>
+            )}
+          </>
+        )}
         <div className="grid gap-4 md:grid-cols-2">
           {input("LinkedIn", "linkedin", "url", false, { placeholder: "https://" })}
           {input("Instagram", "instagram", "url", false, { placeholder: "https://" })}

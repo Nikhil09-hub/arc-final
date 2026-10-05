@@ -18,6 +18,7 @@ import WhatWeDo from "./components/WhatWeDo"
 
 import EventsPage from "./pages/EventsPage"
 import EventDetails from "./pages/EventDetails"
+import EventRegisterPage from "./pages/EventRegisterPage"
 import TeamPage from "./pages/TeamPage"
 import AdminLoginPage from "./pages/AdminLoginPage"
 import AdminDashboardPage from "./pages/AdminDashboardPage"
@@ -26,6 +27,7 @@ import AdminEventFormPage from "./pages/AdminEventFormPage"
 import GalleryPage from "./pages/GalleryPage"
 import AdminGalleryPage from "./pages/AdminGalleryPage"
 import AdminEventDocumentsPage, { AdminEventDocumentsDetailPage } from "./pages/AdminEventDocumentsPage"
+import AdminRegistrationsPage, { AdminRegistrationsDetailPage } from "./pages/AdminRegistrationsPage"
 import AlumniPage from "./pages/AlumniPage"
 import AdminLayout from "./components/AdminLayout"
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute"
@@ -55,6 +57,8 @@ function AppRoutes() {
       title = "What We Do | VJ ARC"
     } else if (path === "/events") {
       title = "Events | VJ ARC"
+    } else if (path.match(/^\/events\/[^/]+\/register\/?$/)) {
+      title = "Event Registration | VJ ARC"
     } else if (path.match(/^\/events\/[^/]+\/?$/)) {
       const slug = path.split("/").filter(Boolean).at(-1)
       title = `${decodeURIComponent(slug).replaceAll("-", " ")} | VJ ARC`
@@ -78,6 +82,8 @@ function AppRoutes() {
       title = "Manage Gallery | VJ ARC"
     } else if (path.startsWith("/admin/event-documents")) {
       title = "Event Documents | VJ ARC"
+    } else if (path.startsWith("/admin/registrations")) {
+      title = "Registrations | VJ ARC"
     }
 
     document.title = title
@@ -97,6 +103,10 @@ function AppRoutes() {
             path="/events/:slug"
             element={<EventDetails />}
           />
+          <Route
+            path="/events/:slug/register"
+            element={<EventRegisterPage />}
+          />
           <Route path="/team" element={<TeamPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
@@ -110,6 +120,8 @@ function AppRoutes() {
               <Route path="gallery" element={<AdminGalleryPage />} />
               <Route path="event-documents" element={<AdminEventDocumentsPage />} />
               <Route path="event-documents/:eventId" element={<AdminEventDocumentsDetailPage />} />
+              <Route path="registrations" element={<AdminRegistrationsPage />} />
+              <Route path="registrations/:eventId" element={<AdminRegistrationsDetailPage />} />
             </Route>
           </Route>
         </Routes>

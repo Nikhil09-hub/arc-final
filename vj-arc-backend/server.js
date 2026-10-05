@@ -11,6 +11,7 @@ const connectDB = require("./src/config/db");
 const eventRoutes = require("./src/routes/eventRoutes");
 const galleryRoutes = require("./src/routes/galleryRoutes");
 const eventDocumentRoutes = require("./src/routes/eventDocumentRoutes");
+const registrationRoutes = require("./src/routes/registrationRoutes");
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use("/api/events", eventRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/event-documents", eventDocumentRoutes);
+app.use("/api/registrations", registrationRoutes);
 app.use("/api/auth", authRoutes);
 
 // Health check

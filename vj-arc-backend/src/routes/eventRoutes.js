@@ -4,14 +4,21 @@ const protect = require("../middleware/authMiddleware");
 
 const {
   getEvents,
+  getAdminEvents,
   getEventById,
+  getAdminEventById,
   getEventBySlug,
+  getAdminEventBySlug,
   createEvent,
   updateEvent,
   deleteEvent,
 } = require("../controllers/eventController");
 
 const router = express.Router();
+
+router.get("/admin", protect, getAdminEvents);
+router.get("/admin/slug/:slug", protect, getAdminEventBySlug);
+router.get("/admin/:id", protect, getAdminEventById);
 
 router.get("/", getEvents);
 

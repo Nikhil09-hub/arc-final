@@ -21,7 +21,7 @@ function AdminEventFormPage() {
       setLoading(true)
       setError("")
       try {
-        const result = await adminRequest(`events/${id}`)
+        const result = await adminRequest(`events/admin/${id}`)
         if (active) setEvent(result.data)
       } catch (loadError) {
         if (active) setError(loadError.message || "Unable to load event")
