@@ -1,5 +1,8 @@
 const Event = require("../models/Event");
 const EventDocument = require("../models/EventDocument");
+const {
+  validateRegistrationPaymentConfig,
+} = require("../services/registrationFeeService");
 
 const hasInvalidTeamSize = (registration = {}) => {
   if (
@@ -134,6 +137,34 @@ const getAdminEventById = async (req, res) => {
 };
 
 // Create a new event
+const normalizeRegistrationPayload = (payload = {}) => {
+  const registration = payload?.registration && typeof payload.registration === "object"
+    ? payload.registration
+    : {};
+
+  if (!registration || registration.type !== "internal") {
+    if (registration && registration.type === "internal") {
+      registration.enabled = true;
+    }
+    return payload;
+  }
+
+  const normalizedPayment = validateRegistrationPaymentConfig(registration);
+  registration.payment = normalizedPayment;
+  registration.enabled = Boolean(registration.enabled);
+
+  if (!registration.enabled) {
+    registration.payment = {
+      enabled: false,
+      amount: 0,
+      currency: "INR",
+      feeType: registration.format === "team" ? "per_participant" : "per_participant",
+    };
+  }
+
+  return payload;
+};
+
 const createEvent = async (req, res) => {
   try {
     if (hasInvalidTeamSize(req.body?.registration)) {
@@ -142,6 +173,9 @@ const createEvent = async (req, res) => {
         message: "Team sizes must be whole numbers, at least two, and maximum must not be less than minimum.",
       });
     }
+
+    normalizeRegistrationPayload(req.body);
+
     const event = await Event.create(req.body);
 
     res.status(201).json({
@@ -166,6 +200,9 @@ const updateEvent = async (req, res) => {
         message: "Team sizes must be whole numbers, at least two, and maximum must not be less than minimum.",
       });
     }
+
+    normalizeRegistrationPayload(req.body);
+
     const event = await Event.findByIdAndUpdate(
       req.params.id,
       req.body,

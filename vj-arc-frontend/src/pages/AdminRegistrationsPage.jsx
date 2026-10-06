@@ -81,6 +81,9 @@ function exportRegistrationsToCsv(registrations, eventTitle) {
     "College",
     "Department",
     "Year",
+    "Payment Status",
+    "Payment Amount",
+    "Cashfree Order ID",
     "Registered At",
   ]
 
@@ -106,6 +109,9 @@ function exportRegistrationsToCsv(registrations, eventTitle) {
       registration.college || "",
       registration.department || "",
       registration.year || "",
+      registration.payment?.status || "not_required",
+      registration.payment?.amount ? `₹${registration.payment.amount}` : "₹0",
+      registration.payment?.orderId || "",
       registration.createdAt
         ? new Date(registration.createdAt).toLocaleString("en-IN")
         : "",
@@ -259,6 +265,9 @@ export function AdminRegistrationsDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
+  const paymentConfig = event?.registration?.payment || {}
+  const paymentRequired = Boolean(paymentConfig.enabled)
+  const paymentAmount = Number(paymentConfig.amount) || 0
 
   // Delete modal state
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -354,6 +363,22 @@ export function AdminRegistrationsDetailPage() {
           <p className="mt-1 text-xs text-[var(--vj-muted)]">
             {registrations.length} total {registrations.length === 1 ? "registration" : "registrations"}
           </p>
+          {event?.registration && (
+            <div className="mt-4 grid gap-3 rounded-xl border border-white/10 bg-[var(--vj-dark)] p-4 sm:grid-cols-3">
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--vj-muted)]">Payment Required</p>
+                <p className="mt-1 text-sm font-medium text-white">{paymentRequired ? "Yes" : "No"}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--vj-muted)]">Fee Amount</p>
+                <p className="mt-1 text-sm font-medium text-white">{paymentRequired ? `₹${paymentAmount}` : "₹0"}</p>
+              </div>
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-wider text-[var(--vj-muted)]">Payment Status</p>
+                <p className="mt-1 text-sm font-medium text-white">{paymentRequired ? "Sandbox Checkout Enabled" : "—"}</p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
@@ -427,6 +452,7 @@ export function AdminRegistrationsDetailPage() {
                   <th className="px-4 py-3.5">College</th>
                   <th className="px-4 py-3.5">Dept</th>
                   <th className="px-4 py-3.5">Year</th>
+                  <th className="px-4 py-3.5">Payment</th>
                   <th className="px-4 py-3.5">Registered At</th>
                   <th className="px-4 py-3.5 text-right">Action</th>
                 </tr>
@@ -479,6 +505,10 @@ export function AdminRegistrationsDetailPage() {
                     </td>
                     <td className="px-4 py-3.5 text-[var(--vj-muted)] whitespace-nowrap">
                       {reg.year}
+                    </td>
+                    <td className="px-4 py-3.5 text-[var(--vj-muted)] whitespace-nowrap">
+                      <div className="font-medium text-white">{reg.payment?.status || "not_required"}</div>
+                      <div className="text-[10px] text-[var(--vj-muted)]">₹{reg.payment?.amount || 0}</div>
                     </td>
                     <td className="px-4 py-3.5 text-[var(--vj-muted)] whitespace-nowrap">
                       {formatDateTime(reg.createdAt)}
@@ -565,6 +595,10 @@ export function AdminRegistrationsDetailPage() {
                       </details>
                     </div>
                   )}
+                  <div>
+                    <span className="block text-[9px] uppercase tracking-wider text-white/40">Payment</span>
+                    <span className="text-white/80">{reg.payment?.status || "not_required"} · ₹{reg.payment?.amount || 0}</span>
+                  </div>
                   <div>
                     <span className="block text-[9px] uppercase tracking-wider text-white/40">Registered</span>
                     <span className="text-white/80">{formatDateTime(reg.createdAt)}</span>

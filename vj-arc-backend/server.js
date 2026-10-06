@@ -12,18 +12,24 @@ const eventRoutes = require("./src/routes/eventRoutes");
 const galleryRoutes = require("./src/routes/galleryRoutes");
 const eventDocumentRoutes = require("./src/routes/eventDocumentRoutes");
 const registrationRoutes = require("./src/routes/registrationRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
 
 const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    req.rawBody = Buffer.from(buf);
+  },
+}));
 
 // Routes
 app.use("/api/events", eventRoutes);
 app.use("/api/gallery", galleryRoutes);
 app.use("/api/event-documents", eventDocumentRoutes);
 app.use("/api/registrations", registrationRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/auth", authRoutes);
 
 // Health check

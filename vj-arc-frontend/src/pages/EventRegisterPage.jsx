@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react"
 import { getAdminEventBySlug, getEventBySlug } from "../services/eventService"
+import { createCashfreeOrder, verifyCashfreePayment } from "../services/paymentService"
 import { submitRegistration } from "../services/registrationService"
 import { getAdminToken } from "../services/authService"
 
@@ -37,6 +38,64 @@ const fieldClass =
   "mt-2 w-full rounded-lg border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm text-[var(--vj-white)] outline-none placeholder:text-white/30 focus:border-[var(--vj-blue)] disabled:opacity-50"
 
 const emptyTeamMember = () => ({ name: "", rollNo: "", email: "", phone: "" })
+
+function getNormalizedPaymentConfig(registration = {}) {
+  const payment = registration.payment || {}
+  const enabled = Boolean(payment.enabled)
+  const amount = Number(payment.amount) || 0
+  const feeType = payment.feeType === "per_team" ? "per_team" : "per_participant"
+
+  return {
+    enabled,
+    amount,
+    currency: (payment.currency || "INR").toUpperCase(),
+    feeType,
+  }
+}
+
+function calculateDisplayFee(event, teamSize = 1) {
+  const registration = event?.registration || {}
+  const paymentConfig = getNormalizedPaymentConfig(registration)
+
+  if (!paymentConfig.enabled || paymentConfig.amount <= 0) {
+    return {
+      enabled: false,
+      amount: 0,
+      currency: "INR",
+      feeType: "per_participant",
+      total: 0,
+      label: "FREE",
+      description: "Registration Fee",
+    }
+  }
+
+  const format = registration.format || "individual"
+  const amount = paymentConfig.amount
+
+  if (format === "team" && paymentConfig.feeType === "per_team") {
+    return {
+      enabled: true,
+      amount,
+      currency: paymentConfig.currency,
+      feeType: "per_team",
+      total: amount,
+      label: `₹${amount} per team`,
+      description: `Registration Fee · ${amount} per team`,
+    }
+  }
+
+  const perParticipantAmount = amount * Math.max(1, teamSize)
+
+  return {
+    enabled: true,
+    amount,
+    currency: paymentConfig.currency,
+    feeType: "per_participant",
+    total: perParticipantAmount,
+    label: `₹${amount} per participant`,
+    description: `Registration Fee · ${amount} per participant`,
+  }
+}
 
 export default function EventRegisterPage() {
   const { slug } = useParams()
@@ -129,10 +188,66 @@ export default function EventRegisterPage() {
     )
   }
 
+  const loadCashfreeSdk = async () => {
+    if (window.Cashfree) return
+
+    await new Promise((resolve, reject) => {
+      const script = document.createElement("script")
+      script.src = "https://sdk.cashfree.com/js/v3/cashfree.js"
+      script.async = true
+      script.onload = resolve
+      script.onerror = () => reject(new Error("Cashfree SDK failed to load."))
+      document.body.appendChild(script)
+    })
+  }
+
+  const openCashfreeCheckout = async ({ paymentSessionId, orderId, registrationId, registrationSummary }) => {
+    await loadCashfreeSdk()
+    const cashfree = await window.Cashfree.init({ mode: "sandbox" })
+
+    if (!cashfree || typeof cashfree.checkout !== "function") {
+      throw new Error("Cashfree checkout is unavailable right now.")
+    }
+
+    return new Promise((resolve, reject) => {
+      cashfree.checkout({
+        paymentSessionId,
+        redirectTarget: "_self",
+        onSuccess: async () => {
+          try {
+            const verified = await verifyCashfreePayment({ registrationId, orderId })
+            setSuccessData({
+              ...registrationSummary,
+              _id: registrationId,
+              paymentStatus: verified?.data?.paymentStatus || "paid",
+              eventName: event.title,
+            })
+            window.scrollTo({ top: 0, behavior: "smooth" })
+            resolve(verified)
+          } catch (error) {
+            setFormError(error.message || "Payment verification failed. Please contact support.")
+            reject(error)
+          }
+        },
+        onFailure: () => {
+          const failureError = new Error("Cashfree payment failed. Please try again.")
+          setFormError(failureError.message)
+          reject(failureError)
+        },
+        onClose: () => {
+          const closeError = new Error("Payment was cancelled. Please try again.")
+          setFormError(closeError.message)
+          reject(closeError)
+        },
+      })
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormError("")
 
+    const paymentConfig = getNormalizedPaymentConfig(event?.registration || {})
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const registration = event.registration || {}
     const registrationFormat = registration.format || "individual"
@@ -140,6 +255,7 @@ export default function EventRegisterPage() {
     const minMembers = Number(teamConfig.minimumMembers) || 2
     const maxMembers = Number(teamConfig.maximumMembers) || 4
     let payload
+    let registrationSummary = null
 
     if (registrationFormat === "team") {
       const teamSize = teamMembers.length + 1
@@ -186,6 +302,15 @@ export default function EventRegisterPage() {
           members,
         },
       }
+      registrationSummary = {
+        registrationType: "team",
+        team: {
+          teamName: payload.team.teamName || "Team",
+          teamSize: members.length + 1,
+          leader,
+          members,
+        },
+      }
     } else {
       const participant = {
         fullName: formData.fullName.trim(),
@@ -209,10 +334,33 @@ export default function EventRegisterPage() {
         registrationType: "individual",
         ...participant,
       }
+      registrationSummary = {
+        registrationType: "individual",
+        fullName: participant.fullName,
+        rollNo: participant.rollNo,
+        email: participant.email,
+        phone: participant.phone,
+        college: participant.college,
+        department: participant.department,
+        year: participant.year,
+      }
     }
 
     setSubmitting(true)
     try {
+      if (paymentConfig.enabled) {
+        const orderResponse = await createCashfreeOrder(payload, {
+          adminOnly: event.visibility === "admin",
+        })
+        await openCashfreeCheckout({
+          paymentSessionId: orderResponse.data.paymentSessionId,
+          orderId: orderResponse.data.orderId,
+          registrationId: orderResponse.data.registrationId,
+          registrationSummary,
+        })
+        return
+      }
+
       const response = await submitRegistration(payload, {
         adminOnly: event.visibility === "admin",
       })
@@ -284,6 +432,9 @@ export default function EventRegisterPage() {
   const teamConfig = regConfig.team || {}
   const minMembers = Number(teamConfig.minimumMembers) || 2
   const maxMembers = Number(teamConfig.maximumMembers) || 4
+  const teamSize = registrationFormat === "team" ? Math.max(minMembers, teamMembers.length + 1) : 1
+  const feeSummary = calculateDisplayFee(event, teamSize)
+  const isPaidEvent = feeSummary.enabled
 
   const startDate = regConfig.startDate ? new Date(regConfig.startDate).getTime() : null
   const endDate = regConfig.endDate ? new Date(regConfig.endDate).getTime() : null
@@ -550,6 +701,39 @@ export default function EventRegisterPage() {
             </div>
           )}
 
+          <div className="mt-6 rounded-xl border border-white/10 bg-[var(--vj-black)] p-4 sm:p-5">
+            <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[var(--vj-muted)]">
+              Registration Fee
+            </p>
+            <div className="mt-3 flex items-end justify-between gap-3">
+              <div>
+                <p className="text-xl font-semibold text-[var(--vj-white)]">
+                  {feeSummary.enabled ? feeSummary.label : "FREE"}
+                </p>
+                {registrationFormat === "team" && feeSummary.enabled && feeSummary.feeType === "per_participant" && (
+                  <p className="mt-1 text-xs text-[var(--vj-muted)]">
+                    Team Size: {teamSize} · Fee: ₹{feeSummary.amount} × {teamSize} · Total: ₹{feeSummary.total}
+                  </p>
+                )}
+                {registrationFormat === "team" && feeSummary.enabled && feeSummary.feeType === "per_team" && (
+                  <p className="mt-1 text-xs text-[var(--vj-muted)]">
+                    Team Size: {teamSize} · Fee: ₹{feeSummary.amount} per team · Total: ₹{feeSummary.total}
+                  </p>
+                )}
+              </div>
+              {feeSummary.enabled && (
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-amber-300">
+                  Payment Pending
+                </span>
+              )}
+            </div>
+            {isPaidEvent && (
+              <p className="mt-3 text-xs text-[var(--vj-muted)]">
+                Complete the secure Cashfree sandbox checkout after you submit the form.
+              </p>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             {registrationFormat === "team" ? (
               <div className="space-y-6">
@@ -674,7 +858,7 @@ export default function EventRegisterPage() {
             <div className="pt-4">
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || isPaidEvent}
                 className="w-full rounded-lg bg-[var(--vj-blue)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(37,99,255,0.25)] transition duration-300 hover:opacity-95 disabled:cursor-wait disabled:opacity-50"
               >
                 {submitting ? (
@@ -682,6 +866,8 @@ export default function EventRegisterPage() {
                     <Loader2 size={16} className="animate-spin" />
                     Submitting Registration...
                   </span>
+                ) : isPaidEvent ? (
+                  "Payment Coming Soon"
                 ) : (
                   "REGISTER"
                 )}

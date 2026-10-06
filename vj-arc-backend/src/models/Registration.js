@@ -30,6 +30,24 @@ const teamSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const paymentSchema = new mongoose.Schema(
+  {
+    required: { type: Boolean, default: false },
+    amount: { type: Number, default: 0, min: 0 },
+    currency: { type: String, default: "INR", enum: ["INR"], uppercase: true },
+    status: {
+      type: String,
+      enum: ["not_required", "pending", "paid", "failed", "refunded"],
+      default: "not_required",
+    },
+    provider: { type: String, default: "cashfree" },
+    orderId: { type: String, default: "" },
+    paymentId: { type: String, default: "" },
+    paidAt: { type: Date, default: null },
+  },
+  { _id: false }
+);
+
 const registrationSchema = new mongoose.Schema(
   {
     eventId: {
@@ -106,6 +124,20 @@ const registrationSchema = new mongoose.Schema(
       required: function () {
         return this.registrationType === "team";
       },
+    },
+
+    payment: {
+      type: paymentSchema,
+      default: () => ({
+        required: false,
+        amount: 0,
+        currency: "INR",
+        status: "not_required",
+        provider: "cashfree",
+        orderId: "",
+        paymentId: "",
+        paidAt: null,
+      }),
     },
   },
   {

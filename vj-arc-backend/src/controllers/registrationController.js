@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Event = require("../models/Event");
 const Registration = require("../models/Registration");
 const RegistrationParticipant = require("../models/RegistrationParticipant");
+const { calculateRegistrationAmount } = require("../services/registrationFeeService");
 
 const validEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 const cleanText = (value) =>
@@ -42,6 +43,13 @@ const createRegistration = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "This event does not accept website registrations.",
+      });
+    }
+
+    if (Boolean(regConfig?.payment?.enabled)) {
+      return res.status(400).json({
+        success: false,
+        message: "Paid registrations must be processed through the payment flow.",
       });
     }
 
@@ -115,6 +123,16 @@ const createRegistration = async (req, res) => {
         eventId: event._id,
         registrationType,
         ...participant,
+        payment: {
+          required: false,
+          amount: 0,
+          currency: "INR",
+          status: "not_required",
+          provider: "cashfree",
+          orderId: "",
+          paymentId: "",
+          paidAt: null,
+        },
       };
       participants = [{ rollNo: participant.rollNo }];
     } else {
@@ -212,7 +230,25 @@ const createRegistration = async (req, res) => {
           leader: cleanLeader,
           members: cleanMembers,
         },
+        payment: {
+          required: false,
+          amount: 0,
+          currency: "INR",
+          status: "not_required",
+          provider: "cashfree",
+          orderId: "",
+          paymentId: "",
+          paidAt: null,
+        },
       };
+    }
+
+    const computedAmount = calculateRegistrationAmount(event, registrationData);
+    if (computedAmount > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Online payment will be available soon.",
+      });
     }
 
     const normalizedRollNumbers = participants.map(({ rollNo }) =>

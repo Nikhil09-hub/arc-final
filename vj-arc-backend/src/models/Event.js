@@ -54,6 +54,29 @@ const registrationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    payment: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+      amount: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      currency: {
+        type: String,
+        default: "INR",
+        trim: true,
+        uppercase: true,
+      },
+      feeType: {
+        type: String,
+        enum: ["per_participant", "per_team"],
+        default: "per_participant",
+      },
+    },
+
     startDate: {
       type: Date,
       default: null,
@@ -258,6 +281,62 @@ eventSchema.pre("validate", function () {
       "registration.team.maximumMembers",
       "Maximum team size must be at least the minimum team size"
     );
+  }
+
+  const payment = this.registration?.payment;
+  if (!this.registration || this.registration.type !== "internal") {
+    return;
+  }
+
+  if (!payment) {
+    this.registration.payment = {
+      enabled: false,
+      amount: 0,
+      currency: "INR",
+      feeType: "per_participant",
+    };
+    return;
+  }
+
+  if (payment.amount !== undefined && Number(payment.amount) < 0) {
+    this.invalidate(
+      "registration.payment.amount",
+      "Payment amount cannot be negative."
+    );
+  }
+
+  if (payment.currency && payment.currency.toUpperCase() !== "INR") {
+    this.invalidate(
+      "registration.payment.currency",
+      "Only INR is supported for registration payment configuration."
+    );
+  }
+
+  if (payment.feeType && !["per_participant", "per_team"].includes(payment.feeType)) {
+    this.invalidate(
+      "registration.payment.feeType",
+      "Registration fee type must be per_participant or per_team."
+    );
+  }
+
+  if (payment.enabled) {
+    if (!Number.isFinite(Number(payment.amount)) || Number(payment.amount) <= 0) {
+      this.invalidate(
+        "registration.payment.amount",
+        "Paid registration amount must be greater than zero."
+      );
+    }
+
+    if (this.registration.format === "individual" && payment.feeType !== "per_participant") {
+      this.invalidate(
+        "registration.payment.feeType",
+        "Individual registration fees must be charged per participant."
+      );
+    }
+  } else {
+    payment.amount = 0;
+    payment.currency = "INR";
+    payment.feeType = payment.feeType || "per_participant";
   }
 });
 

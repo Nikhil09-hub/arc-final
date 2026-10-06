@@ -40,6 +40,11 @@ function createInitialValues(event) {
           : "none"),
     registrationLink: event?.registration?.link || "",
     registrationFormat: event?.registration?.format || "individual",
+    registrationPaymentEnabled: Boolean(event?.registration?.payment?.enabled),
+    registrationPaymentAmount: event?.registration?.payment?.amount ?? 0,
+    registrationPaymentCurrency: event?.registration?.payment?.currency || "INR",
+    registrationPaymentFeeType:
+      event?.registration?.payment?.feeType || "per_participant",
     registrationStartDate: toLocalDateTime(event?.registration?.startDate),
     registrationEndDate: toLocalDateTime(event?.registration?.endDate),
     minimumMembers: event?.registration?.team?.minimumMembers ?? 2,
@@ -128,6 +133,13 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
         return
       }
       if (
+        values.registrationPaymentEnabled &&
+        (!Number.isFinite(Number(values.registrationPaymentAmount)) || Number(values.registrationPaymentAmount) <= 0)
+      ) {
+        setFormError("Paid registration amount must be greater than zero.")
+        return
+      }
+      if (
         values.registrationFormat === "team" &&
         (!Number.isInteger(Number(values.minimumMembers)) ||
           !Number.isInteger(Number(values.maximumMembers)) ||
@@ -198,6 +210,25 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
           values.registrationType === "internal"
             ? new Date(values.registrationEndDate).toISOString()
             : null,
+        payment:
+          values.registrationType === "internal"
+            ? {
+                enabled: Boolean(values.registrationPaymentEnabled),
+                amount: Number(values.registrationPaymentEnabled) ? Number(values.registrationPaymentAmount) : 0,
+                currency: "INR",
+                feeType:
+                  values.registrationFormat === "team"
+                    ? values.registrationPaymentFeeType === "per_team"
+                      ? "per_team"
+                      : "per_participant"
+                    : "per_participant",
+              }
+            : {
+                enabled: false,
+                amount: 0,
+                currency: "INR",
+                feeType: "per_participant",
+              },
         team: {
           minimumMembers: Number(values.minimumMembers),
           maximumMembers: Number(values.maximumMembers),
@@ -342,6 +373,80 @@ function EventForm({ event, mode, saving, error, onSubmit }) {
               {input("Registration opens", "registrationStartDate", "datetime-local", true)}
               {input("Registration closes", "registrationEndDate", "datetime-local", true)}
             </div>
+
+            <div className="space-y-4 rounded-xl border border-white/10 bg-[var(--vj-black)] p-4 sm:p-5">
+              <h3 className="text-sm font-semibold">PAYMENT</h3>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  [false, "Free"],
+                  [true, "Paid"],
+                ].map(([isPaid, label]) => (
+                  <label key={label} className="flex items-center gap-3 rounded-lg border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm">
+                    <input
+                      type="radio"
+                      name="registrationPaymentEnabled"
+                      checked={values.registrationPaymentEnabled === isPaid}
+                      onChange={() => update("registrationPaymentEnabled", isPaid)}
+                      className="size-4 accent-[var(--vj-blue)]"
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+
+              {values.registrationPaymentEnabled ? (
+                <div className="space-y-4 pt-2">
+                  <label className="block text-sm text-[var(--vj-muted)]">
+                    Registration Fee
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-base font-semibold text-[var(--vj-white)]">₹</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={values.registrationPaymentAmount}
+                        onChange={(event) => update("registrationPaymentAmount", Number(event.target.value) || 0)}
+                        className={fieldClass}
+                        placeholder="50"
+                      />
+                    </div>
+                  </label>
+
+                  <fieldset className="space-y-2">
+                    <legend className="text-sm text-[var(--vj-muted)]">Fee Applies To</legend>
+                    {values.registrationFormat === "individual" ? (
+                      <label className="flex items-center gap-3 rounded-lg border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm">
+                        <input
+                          type="radio"
+                          name="registrationPaymentFeeType"
+                          checked={values.registrationPaymentFeeType === "per_participant"}
+                          onChange={() => update("registrationPaymentFeeType", "per_participant")}
+                          className="size-4 accent-[var(--vj-blue)]"
+                        />
+                        Per Participant
+                      </label>
+                    ) : (
+                      [
+                        ["per_participant", "Per Participant"],
+                        ["per_team", "Per Team"],
+                      ].map(([feeType, label]) => (
+                        <label key={feeType} className="flex items-center gap-3 rounded-lg border border-white/10 bg-[var(--vj-black)] px-4 py-3 text-sm">
+                          <input
+                            type="radio"
+                            name="registrationPaymentFeeType"
+                            checked={values.registrationPaymentFeeType === feeType}
+                            onChange={() => update("registrationPaymentFeeType", feeType)}
+                            className="size-4 accent-[var(--vj-blue)]"
+                          />
+                          {label}
+                        </label>
+                      ))
+                    )}
+                  </fieldset>
+                </div>
+              ) : null}
+            </div>
+
             {values.registrationFormat === "team" && (
               <div className="space-y-4 rounded-xl border border-white/10 bg-[var(--vj-black)] p-4 sm:p-5">
                 <h3 className="text-sm font-semibold">Team registration</h3>
